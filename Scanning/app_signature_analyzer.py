@@ -28,8 +28,9 @@ elif platform.system() == 'Darwin':  # macOS
     exclusion_directories = ['/System', '/Library', os.path.expanduser('~/Library'), '/sbin', '/usr/bin', '/usr/sbin',
                              '/Volumes', '/private', '/.Spotlight-V100', '/.fseventsd', '/dev']
 elif platform.system() == 'Linux':
-    directory_to_scan = "/home/cs20m039/thesis/dataset1"  # Customise: target directory for Linux
-    exclusion_directories = ['/sys', '/proc', '/dev', '/snap']
+    directory_to_scan = "/"  # Customise: target directory for Linux
+    exclusion_directories = ['/sys/kernel/security']
+  #  exclusion_directories = ['/sys', '/proc', '/dev', '/snap']
 
 # Logging
 logging.basicConfig(filename=log_file_name,

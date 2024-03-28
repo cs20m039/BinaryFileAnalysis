@@ -6,6 +6,7 @@ import csv
 import datetime
 import logging
 import os
+import hashlib
 
 # Generate a timestamp string in the desired format
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -20,10 +21,10 @@ logging.basicConfig(level=logging.INFO,
                     filemode='w')  # Use 'w' to overwrite the log file each time or
 
 INTERVAL_START = 4
-INTERVAL_END = 150
+INTERVAL_END = 350
 READ_LENGTH = INTERVAL_END  # Assuming you want to read up to the INTERVAL_END byte
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/malicious'
-CSV_PATH = '../DataExchange/data_headerSignature_maliciousFiles_4-150_Bytes.csv'
+CSV_PATH = '../DataExchange/data_header_signature_malicious_4-150_Bytes.csv'
 
 
 def read_bytes_of_file(file_path):
