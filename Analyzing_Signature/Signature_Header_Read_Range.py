@@ -1,12 +1,7 @@
-# Read the defined interval of binary patterns for header signatures of malicious
-# Writes to content to a file
-
-
 import csv
 import datetime
 import logging
 import os
-import hashlib
 
 # Generate a timestamp string in the desired format
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -18,7 +13,7 @@ LOG_FILE_PATH = f'../Logfiles/log-readHeader-maliciousFiles_{timestamp}.txt'
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     filename=LOG_FILE_PATH,
-                    filemode='w')  # Use 'w' to overwrite the log file each time or
+                    filemode='w')  # Use 'w' to overwrite the log file each time
 
 INTERVAL_START = 4
 INTERVAL_END = 350
@@ -27,47 +22,36 @@ DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/malicious'
 CSV_PATH = '../DataExchange/data_header_signature_malicious_4-150_Bytes.csv'
 
 
-def read_bytes_of_file(file_path):
+def read_bytes_of_file(file_path, read_length=READ_LENGTH, interval_start=INTERVAL_START, interval_end=INTERVAL_END):
+    """Reads the specified number of bytes from a file and returns a dictionary of byte lengths."""
     try:
         with open(file_path, 'rb') as file:
-            bytes_data = {}
-            bytes_read = file.read(READ_LENGTH)
-
-            for length in range(INTERVAL_START, INTERVAL_END + 1):  # +1 to include INTERVAL_END
-                if len(bytes_read) >= length:
-                    bytes_data[f'{length}Byte'] = bytes_read[:length].hex()
-                else:
-                    bytes_data[f'{length}Byte'] = bytes_read.hex()
-                    break
-
+            bytes_data = {'FileHash': os.path.splitext(os.path.basename(file_path))[0]}  # Hash included in output
+            bytes_read = file.read(read_length)
+            bytes_data.update({f'{length}Byte': bytes_read[:length].hex() for length in range(interval_start, min(len(bytes_read)+1, interval_end + 1))})
             return bytes_data
     except Exception as e:
         logging.error(f"Error processing {file_path}: {e}")
         return {}
 
+def analyze_files_recursive(directory_path, csv_path, interval_start=INTERVAL_START, interval_end=INTERVAL_END):
+    """Walks through a directory recursively, reads file bytes, and writes them into a CSV."""
+    file_count = 0
+    headers = ['FileHash'] + [f'{i}Byte' for i in range(interval_start, interval_end + 1)]
 
-def analyze_files_recursive(directory_path, csv_path):
-    file_count = 0  # Initialize the file counter
     with open(csv_path, 'w', newline='') as csv_file:
-        writer = csv.writer(csv_file)
-        headers = ['FilePath'] + [f'{i}Byte' for i in range(INTERVAL_START, INTERVAL_END + 1)]
-        writer.writerow(headers)
+        writer = csv.DictWriter(csv_file, fieldnames=headers)
+        writer.writeheader()
 
-        for dirpath, dirnames, filenames in os.walk(directory_path):
-            if filenames:  # Check if the directory has files
-                logging.info(f"Processing {len(filenames)} files in {dirpath}")  # Log only if there are files
+        for dirpath, _, filenames in os.walk(directory_path):
+            if filenames:
+                logging.info(f"Processing {len(filenames)} files in {dirpath}")
                 for filename in filenames:
                     full_path = os.path.join(dirpath, filename)
                     bytes_data = read_bytes_of_file(full_path)
                     if bytes_data:
-                        relative_path = os.path.relpath(full_path, directory_path)
-                        row = [relative_path] + [bytes_data.get(f'{i}Byte', '') for i in
-                                                 range(INTERVAL_START, INTERVAL_END + 1)]
-                        writer.writerow(row)
+                        writer.writerow(bytes_data)
                         file_count += 1
-            else:
-                logging.debug(f"No files found in {dirpath}")
-                pass  # Currently does nothing for empty directories
 
     logging.info(f"Total files analyzed: {file_count}")
 
