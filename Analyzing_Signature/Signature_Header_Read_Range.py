@@ -16,10 +16,10 @@ logging.basicConfig(level=logging.INFO,
                     filemode='w')  # Use 'w' to overwrite the log file each time
 
 INTERVAL_START = 4
-INTERVAL_END = 350
+INTERVAL_END = 345
 READ_LENGTH = INTERVAL_END  # Assuming you want to read up to the INTERVAL_END byte
-DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/malicious'
-CSV_PATH = '../DataExchange/data_header_signature_malicious_4-150_Bytes.csv'
+DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'
+CSV_PATH = '../DataExchange/data_header_signature_malicious_4-345_Bytes.csv'
 
 
 def read_bytes_of_file(file_path, read_length=READ_LENGTH, interval_start=INTERVAL_START, interval_end=INTERVAL_END):
@@ -37,7 +37,7 @@ def read_bytes_of_file(file_path, read_length=READ_LENGTH, interval_start=INTERV
 def analyze_files_recursive(directory_path, csv_path, interval_start=INTERVAL_START, interval_end=INTERVAL_END):
     """Walks through a directory recursively, reads file bytes, and writes them into a CSV."""
     file_count = 0
-    headers = ['FileHash'] + [f'{i}Byte' for i in range(interval_start, interval_end + 1)]
+    headers = ['FileHash'] + [f'{i}Byte' for i in range(interval_start, interval_end + 1)]  #SHA256 FileHash
 
     with open(csv_path, 'w', newline='') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=headers)

@@ -7,7 +7,7 @@ import datetime
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 # Define the log file path with the timestamp included in the filename
-LOG_FILE_PATH = f'logfiles/log-compareFooter-benignFiles-with-maliciousFooters_{timestamp}.txt'
+LOG_FILE_PATH = f'../Logfiles/log-compareFooter-benignFiles-with-maliciousFooters_{timestamp}.txt'
 
 # Setup basic configuration for logging to write to a file
 logging.basicConfig(level=logging.INFO,
@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO,
                     filename=LOG_FILE_PATH,
                     filemode='w')  # Use 'w' to overwrite the log file each time or
 
-CSV_PATH = '../DataExchange/data_footerSignature_maliciousFiles_varyingLengths.csv'  # Path to CSV with patterns from benign files
+CSV_PATH = '../DataExchange/data_footer_signature_malicious_4-1000.csv'  # Path to CSV with patterns from benign files
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'  # Directory containing malicious files
 
 def get_byte_range_from_csv(csv_path):
@@ -32,23 +32,24 @@ def get_byte_range_from_csv(csv_path):
     return min_byte_length, max_byte_length
 
 def load_csv_data(csv_path):
-    logging.debug('Loading CSV data.')
+    logging.debug('Loading CSV data with hash values as identifiers.')
     hex_data_by_length = {}
-    pattern_sources = {}  # New dictionary to keep track of pattern sources
+    pattern_sources = {}  # Maps pattern keys to hash values
     with open(csv_path, newline='') as csv_file:
         reader = csv.DictReader(csv_file)
         for row in reader:
-            source_file = row['FilePath']  # Assuming 'FilePath' column exists
+            hash_value = row['FileHash']  # Assuming 'HashValue' is the column name for the hash
             for length, hex_value in row.items():
-                if hex_value and length != 'FilePath':
+                if hex_value and length != 'FileHash':  # Adjusted from 'FilePath'
                     byte_length = int(length.replace('Byte', ''))
                     pattern_key = f"{byte_length}_{hex_value}"  # Unique key for each pattern
                     if byte_length not in hex_data_by_length:
                         hex_data_by_length[byte_length] = set()
                     hex_data_by_length[byte_length].add(pattern_key)
-                    pattern_sources[pattern_key] = source_file  # Store source file for each pattern
-    logging.debug('CSV data loaded successfully.')
+                    pattern_sources[pattern_key] = hash_value  # Store hash value for each pattern
+    logging.debug('CSV data loaded successfully with hash value identifiers.')
     return hex_data_by_length, pattern_sources
+
 
 def find_pattern_matches(directory_path, hex_data_by_length, pattern_sources, min_length, max_length):
     logging.debug('Starting pattern matching process.')
@@ -81,7 +82,7 @@ def find_pattern_matches(directory_path, hex_data_by_length, pattern_sources, mi
 
     logging.debug('Pattern matching process completed.')
 
-def main():
+if __name__ == '__main__':
     logging.info('Script started.')
     min_length, max_length = get_byte_range_from_csv(CSV_PATH)
     hex_data_by_length, pattern_sources = load_csv_data(CSV_PATH)
@@ -90,6 +91,3 @@ def main():
     find_pattern_matches(DIRECTORY_PATH, hex_data_by_length, pattern_sources, min_length, max_length)
 
     logging.info('Script finished.')
-
-if __name__ == '__main__':
-    main()

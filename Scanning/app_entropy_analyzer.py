@@ -15,7 +15,7 @@ datetime_str = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
 
 # Paths
 log_file_name = f'entropy_value_analyzer_{datetime_str}.log'
-entropy_values_csv = 'datafile_entropy-test.csv'  # Updated CSV format
+entropy_values_csv = 'datafile_entropy_137_firstBytes.csv'  # Updated CSV format
 bytes_to_read = 137
 
 if platform.system() == 'Windows':

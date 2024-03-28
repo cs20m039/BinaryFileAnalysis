@@ -15,7 +15,7 @@ datetime_str = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
 
 # Application Paths
 log_file_name = f'binary_signature_analyzer_{datetime_str}.log'
-binary_signatures_csv = "datafile_signature-test.csv"  # Format: SHA256,bool,binary_signature
+binary_signatures_csv = "datafile_signature_137_firstBytes.csv"  # Format: SHA256,bool,binary_signature
 bytes_to_read = 137
 
 if platform.system() == 'Windows':

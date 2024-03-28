@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO,
                     filename=LOG_FILE_PATH,
                     filemode='w')  # Use 'w' to overwrite the log file each time or
 
-CSV_PATH = '../DataExchange/data_headerSignature_maliciousFiles_4-150_Bytes.csv'
+CSV_PATH = '../DataExchange/data_header_signature_malicious_4-150_Bytes.csv'
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'
 
 
@@ -43,9 +43,9 @@ def load_csv_data(csv_path):
     with open(csv_path, newline='') as csv_file:
         reader = csv.DictReader(csv_file)
         for row in reader:
-            source_file = row['FilePath']  # Assuming 'FilePath' column exists
+            source_file = row['FileHash']  # Assuming 'FilePath' column exists
             for length, hex_value in row.items():
-                if hex_value and length != 'FilePath':
+                if hex_value and length != 'FileHash':
                     byte_length = int(length.replace('Byte', ''))
                     pattern_key = f"{byte_length}_{hex_value}"  # Unique key for each pattern
                     if byte_length not in hex_data_by_length:
@@ -89,7 +89,7 @@ def find_pattern_matches(directory_path, hex_data_by_length, pattern_sources, mi
     logging.debug('Pattern matching process completed.')
 
 
-def main():
+if __name__ == '__main__':
     logging.info('Script started.')
     min_length, max_length = get_byte_range_from_csv(CSV_PATH)
     hex_data_by_length, pattern_sources = load_csv_data(CSV_PATH)  # Updated to receive pattern_sources
@@ -99,6 +99,3 @@ def main():
 
     logging.info('Script finished.')
 
-
-if __name__ == '__main__':
-    main()

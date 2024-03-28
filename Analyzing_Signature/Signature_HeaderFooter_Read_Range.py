@@ -7,7 +7,7 @@ import datetime
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 # Define the log file path with the timestamp included in the filename
-LOG_FILE_PATH = f'logfiles/log-read-headerFooter_{timestamp}.txt'
+LOG_FILE_PATH = f'../Logfiles/log-read-headerFooter_{timestamp}.txt'
 
 # Setup basic configuration for logging to write to a file
 logging.basicConfig(level=logging.INFO,
@@ -18,8 +18,8 @@ logging.basicConfig(level=logging.INFO,
 INTERVAL_START = 4
 INTERVAL_END = 200
 READ_LENGTH = INTERVAL_END
-DIRECTORY_PATH = '/home/cs20m039/thesis/dataset/malicious'
-CSV_PATH = 'datashare/data_bytes_headerFooter_varying_lengths.csv'
+DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/malicious'
+CSV_PATH = '../DataExchange/data_bytes_headerFooter_varying_lengths.csv'
 
 def read_bytes_of_file(file_path):
     try:
@@ -45,7 +45,7 @@ def analyze_files_recursive(directory_path, csv_path):
     file_count = 0
     with open(csv_path, 'w', newline='') as csv_file:
         writer = csv.writer(csv_file)
-        headers = ['FilePath'] + [f'{i}ByteFirst' for i in range(INTERVAL_START, INTERVAL_END + 1)] + [f'{i}ByteLast' for i in range(INTERVAL_START, INTERVAL_END + 1)]
+        headers = ['FileHash'] + [f'{i}ByteFirst' for i in range(INTERVAL_START, INTERVAL_END + 1)] + [f'{i}ByteLast' for i in range(INTERVAL_START, INTERVAL_END + 1)]
         writer.writerow(headers)
 
         for dirpath, dirnames, filenames in os.walk(directory_path):
@@ -55,8 +55,9 @@ def analyze_files_recursive(directory_path, csv_path):
                     full_path = os.path.join(dirpath, filename)
                     bytes_data = read_bytes_of_file(full_path)
                     if bytes_data:
-                        relative_path = os.path.relpath(full_path, directory_path)
-                        row = [relative_path] + [bytes_data.get(f'{i}ByteFirst', '') for i in range(INTERVAL_START, INTERVAL_END + 1)] + [bytes_data.get(f'{i}ByteLast', '') for i in range(INTERVAL_START, INTERVAL_END + 1)]
+                        # Extract the SHA256 hash from the filename
+                        hash_value = filename.split('.')[0]
+                        row = [hash_value] + [bytes_data.get(f'{i}ByteFirst', '') for i in range(INTERVAL_START, INTERVAL_END + 1)] + [bytes_data.get(f'{i}ByteLast', '') for i in range(INTERVAL_START, INTERVAL_END + 1)]
                         writer.writerow(row)
                         file_count += 1
             else:

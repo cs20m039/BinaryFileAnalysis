@@ -7,7 +7,7 @@ import datetime
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 # Define the log file path with the timestamp included in the filename
-LOG_FILE_PATH = f'logfiles/log-analyse-headerFooter_{timestamp}.txt'
+LOG_FILE_PATH = f'../Logfiles/log-analyse-headerFooter_{timestamp}.txt'
 
 # Setup basic configuration for logging to write to a file
 logging.basicConfig(level=logging.INFO,
@@ -15,8 +15,8 @@ logging.basicConfig(level=logging.INFO,
                     filename=LOG_FILE_PATH,
                     filemode='w')
 
-CSV_PATH = 'datashare/data_bytes_headerFooter_varying_lengths.csv'
-DIRECTORY_PATH = '/home/cs20m039/thesis/dataset/benign'
+CSV_PATH = '../DataExchange/data_bytes_headerFooter_varying_lengths.csv'
+DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'
 
 def get_byte_range_from_csv(csv_path):
     logging.debug('Determining the byte range from the CSV headers.')
@@ -38,16 +38,16 @@ def load_csv_data(csv_path):
     with open(csv_path, newline='') as csv_file:
         reader = csv.DictReader(csv_file)
         for row in reader:
-            source_file = row['FilePath']
+            file_hash = row['FileHash']  # Changed from 'FilePath' to 'FileHash'
             for key, hex_value in row.items():
-                if hex_value and key != 'FilePath':
+                if hex_value and key != 'FileHash':  # Adjusted from 'FilePath'
                     byte_length, position = key.split('Byte')
                     byte_length = int(byte_length)
                     if position.endswith('First') or position.endswith('Last'):
                         if byte_length not in hex_data_by_length:
                             hex_data_by_length[byte_length] = {'First': set(), 'Last': set()}
                         hex_data_by_length[byte_length][position].add(hex_value)
-                        pattern_sources[hex_value] = source_file
+                        pattern_sources[hex_value] = file_hash  # Changed to associate hex_value with file_hash
     logging.debug('CSV data loaded successfully.')
     return hex_data_by_length, pattern_sources
 
