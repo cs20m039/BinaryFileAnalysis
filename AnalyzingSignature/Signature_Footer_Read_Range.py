@@ -7,7 +7,7 @@ import datetime
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 # Define the log file path with the timestamp included in the filename
-LOG_FILE_PATH = f'../Logfiles/log-readFooter-maliciousFiles_{timestamp}.txt'
+LOG_FILE_PATH = f'../Logfiles/log-read_footer-maliciousFiles_{timestamp}.txt'
 
 # Setup basic configuration for logging
 logging.basicConfig(level=logging.INFO,
@@ -15,11 +15,11 @@ logging.basicConfig(level=logging.INFO,
                     filename=LOG_FILE_PATH,
                     filemode='w')  # 'w' to overwrite the log file each time
 
-INTERVAL_START = 9000
-INTERVAL_END = 10000
+INTERVAL_START = 9260
+INTERVAL_END = 9360
 READ_LENGTH = INTERVAL_END  # Assuming reading up to INTERVAL_END byte
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/malicious'
-CSV_PATH = '../DataExchange/data_footer_signature_malicious_4-1000.csv'
+CSV_PATH = f'../DataExchange/data_footer_signature_malicious_{INTERVAL_START}-{INTERVAL_END}.csv'
 
 def read_bytes_of_file(file_path):
     try:

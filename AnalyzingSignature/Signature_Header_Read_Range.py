@@ -19,7 +19,7 @@ INTERVAL_START = 4
 INTERVAL_END = 345
 READ_LENGTH = INTERVAL_END  # Assuming you want to read up to the INTERVAL_END byte
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'
-CSV_PATH = '../DataExchange/data_header_signature_malicious_4-345_Bytes.csv'
+CSV_PATH = '../DataExchange/data_header_signature_benign_4-345_Bytes.csv'
 
 
 def read_bytes_of_file(file_path, read_length=READ_LENGTH, interval_start=INTERVAL_START, interval_end=INTERVAL_END):
