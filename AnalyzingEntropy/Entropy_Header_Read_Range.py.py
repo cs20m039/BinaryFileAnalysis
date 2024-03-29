@@ -13,8 +13,8 @@ STEP = 1
 MALICIOUS_FILE = "/home/cs20m039/thesis/dataset1/malicious"
 BENIGN_FILE = "/home/cs20m039/thesis/dataset1/benign"
 
-MALICIOUS_OUTPUT_CSV = "../DataExchange/entropy_values_malicious_first_344.csv"
-BENIGN_OUTPUT_CSV = "../DataExchange/entropy_values_benign_first_344.csv"
+MALICIOUS_OUTPUT_CSV = "../DataExchange/datafile_read_entropy_malicious_first_344.csv"
+BENIGN_OUTPUT_CSV = "../DataExchange/datafile_read_entropy_benign_first_344.csv"
 
 
 def shannon_entropy(data):

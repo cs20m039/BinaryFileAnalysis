@@ -15,11 +15,11 @@ logging.basicConfig(level=logging.INFO,
                     filename=LOG_FILE_PATH,
                     filemode='w')  # 'w' to overwrite the log file each time
 
-INTERVAL_START = 9260
-INTERVAL_END = 9360
+INTERVAL_START = 9060
+INTERVAL_END = 9260
 READ_LENGTH = INTERVAL_END  # Assuming reading up to INTERVAL_END byte
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/malicious'
-CSV_PATH = f'../DataExchange/data_footer_signature_malicious_{INTERVAL_START}-{INTERVAL_END}.csv'
+CSV_PATH = f'../DataExchange/datafile_signature_footer_malicious_{INTERVAL_START}-{INTERVAL_END}.csv'
 
 def read_bytes_of_file(file_path):
     try:
