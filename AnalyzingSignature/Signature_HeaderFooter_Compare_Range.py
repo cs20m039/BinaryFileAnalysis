@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO,
                     filename=LOG_FILE_PATH,
                     filemode='w')
 
-CSV_PATH = '../DataExchange/data_bytes_headerFooter_varying_lengths.csv'
+CSV_PATH = '../DataExchange/datafile_signature_header_and_footer_malicious_4-300.csv'
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'
 
 def get_byte_range_from_csv(csv_path):

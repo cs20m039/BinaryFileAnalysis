@@ -1,3 +1,6 @@
+# This script reads all files of a directory with subdirectories
+# and writes the combination of header and footer to a csv-file
+
 import csv
 import os
 import logging
@@ -16,10 +19,10 @@ logging.basicConfig(level=logging.INFO,
                     filemode='w')
 
 INTERVAL_START = 4
-INTERVAL_END = 200
+INTERVAL_END = 300
 READ_LENGTH = INTERVAL_END
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/malicious'
-CSV_PATH = '../DataExchange/data_bytes_headerFooter_varying_lengths.csv'
+CSV_PATH = f'../DataExchange/datafile_signature_header_and_footer_malicious_{INTERVAL_START}-{INTERVAL_END}.csv'
 
 def read_bytes_of_file(file_path):
     try:

@@ -46,15 +46,18 @@ def compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_ha
                 logging.info(f"{header} - Entropy Value: {value_malicious} - Match found with {count_benign} benign hashes.")
                 for hash_malicious in hashes_malicious:
                     logging.debug(f"  - Malicious Hash: {hash_malicious}")
+                for hash_benign in hashes_benign:
+                    logging.debug(f"  - Benign Hash: {hash_benign}")
             else:
                 logging.debug(f"Entropy Value: {value_malicious} - No match found in benign hashes.")
     logging.info("Comparison of entropy values completed.")
 
+
 # Main execution
 if __name__ == "__main__":
     # Adjust these file paths according to your environment
-    MALICIOUS_INPUT_CSV = "../DataExchange/datafile_read_entropy_malicious_first_344.csv"
-    BENIGN_INPUT_CSV = "../DataExchange/datafile_read_entropy_benign_first_344.csv"
+    MALICIOUS_INPUT_CSV = "../DataExchange/datafile_read_entropy_malicious_1-2000.csv"
+    BENIGN_INPUT_CSV = "../DataExchange/datafile_read_entropy_benign_1-2000.csv"
 
     entropy_hashes_malicious = read_entropy_values_with_hashes(MALICIOUS_INPUT_CSV)
     entropy_hashes_benign = read_entropy_values_with_hashes(BENIGN_INPUT_CSV)

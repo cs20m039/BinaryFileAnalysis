@@ -7,14 +7,14 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 START_BYTE = 1
-END_BYTE = 344
+END_BYTE = 2000
 STEP = 1
 
 MALICIOUS_FILE = "/home/cs20m039/thesis/dataset1/malicious"
 BENIGN_FILE = "/home/cs20m039/thesis/dataset1/benign"
 
-MALICIOUS_OUTPUT_CSV = "../DataExchange/datafile_read_entropy_malicious_first_344.csv"
-BENIGN_OUTPUT_CSV = "../DataExchange/datafile_read_entropy_benign_first_344.csv"
+MALICIOUS_OUTPUT_CSV = f"../DataExchange/datafile_read_entropy_malicious_{START_BYTE}-{END_BYTE}.csv"
+BENIGN_OUTPUT_CSV = f"../DataExchange/datafile_read_entropy_benign_{START_BYTE}-{END_BYTE}.csv"
 
 
 def shannon_entropy(data):
