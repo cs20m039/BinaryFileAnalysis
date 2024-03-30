@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO,
                     filename=LOG_FILE_PATH,
                     filemode='w')  # Use 'w' to overwrite the log file each time or
 
-CSV_PATH = '../DataExchange/datafile_signature_footer_benign_8500-8600.csv'  # Path to CSV with patterns from benign files
+CSV_PATH = '../DataExchange/datafile_signature_footer_benign_8300-8400.csv'  # Path to CSV with patterns from benign files
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/malicious'  # Directory containing malicious files
 
 def get_byte_range_from_csv(csv_path):
