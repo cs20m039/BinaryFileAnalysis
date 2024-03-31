@@ -56,8 +56,8 @@ def compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_ha
 # Main execution
 if __name__ == "__main__":
     # Adjust these file paths according to your environment
-    MALICIOUS_INPUT_CSV = "../DataExchange/datafile_read_entropy_malicious_1-2000.csv"
-    BENIGN_INPUT_CSV = "../DataExchange/datafile_read_entropy_benign_1-2000.csv"
+    MALICIOUS_INPUT_CSV = "../DataExchange/datafile_read_entropy_malicious_1-1000.csv"
+    BENIGN_INPUT_CSV = "../DataExchange/datafile_read_entropy_benign_1-1000.csv"
 
     entropy_hashes_malicious = read_entropy_values_with_hashes(MALICIOUS_INPUT_CSV)
     entropy_hashes_benign = read_entropy_values_with_hashes(BENIGN_INPUT_CSV)
