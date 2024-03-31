@@ -7,7 +7,7 @@ import os
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 INTERVAL_START = 4
-INTERVAL_END = 400
+INTERVAL_END = 15
 
 # Define the log file path with the timestamp included in the filename
 LOG_FILE_PATH = f'../Logfiles/log_signature_header_malicious_{INTERVAL_START}-{INTERVAL_END}_{timestamp}.txt'
