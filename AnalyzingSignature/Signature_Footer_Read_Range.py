@@ -18,9 +18,8 @@ logging.basicConfig(level=logging.INFO,
 #INTERVAL_START = 8200
 #INTERVAL_END = 8300
 
-INTERVAL_START = 4600
-INTERVAL_END = 4800
-
+INTERVAL_START = 6100
+INTERVAL_END = 6300
 READ_LENGTH = INTERVAL_END  # Assuming reading up to INTERVAL_END byte
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'
 CSV_PATH = f'../DataExchange/datafile_signature_footer_benign_{INTERVAL_START}-{INTERVAL_END}.csv'

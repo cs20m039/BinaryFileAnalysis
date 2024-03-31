@@ -18,8 +18,8 @@ logging.basicConfig(level=logging.INFO,
 #INTERVAL_START = 8200
 #INTERVAL_END = 8300
 
-INTERVAL_START = 8200
-INTERVAL_END = 8500
+INTERVAL_START = 6300
+INTERVAL_END = 6500
 
 READ_LENGTH = INTERVAL_END  # Assuming reading up to INTERVAL_END byte
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'
