@@ -11,8 +11,8 @@ timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 # Define the log file path with the timestamp included in the filename
 LOG_FILE_PATH = f'../Logfiles/log-signature_compare_header-benign_{timestamp}.txt'
-CSV_PATH = '../DataExchange/datafile_signature_header_malicious_4-15.csv'
-DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'
+CSV_PATH = '../DataExchange/datafile_signature_header_benign_4-140.csv'
+DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/malicious'
 
 # Setup basic configuration for logging to write to a file
 logging.basicConfig(level=logging.INFO,
@@ -56,11 +56,11 @@ def load_csv_data(csv_path):
 
 def find_pattern_matches(directory_path, hex_data_by_length, pattern_sources, min_length, max_length):
     logging.debug('Starting pattern matching process.')
-    previous_match_count = None
 
-    # Adjust the file reading to only consider the start of the file up to max_length bytes
+    # Dictionary to count occurrences of each pattern
+    pattern_match_counts = {}
+
     for length in range(max_length, min_length - 1, -1):
-        current_match_count = 0
         logging.debug(f'Checking patterns of length {length} bytes.')
 
         for dirpath, _, filenames in os.walk(directory_path):
@@ -72,17 +72,16 @@ def find_pattern_matches(directory_path, hex_data_by_length, pattern_sources, mi
                         hex_value = pattern_key.split('_')[1]
                         pattern_bytes = bytes.fromhex(hex_value)
                         if file_start.startswith(pattern_bytes):  # Check if the start matches the pattern
-                            current_match_count += 1
-                            source_file = pattern_sources[pattern_key]
-                            logging.debug(
-                                f'Match found: Pattern "{hex_value}" from "{source_file}" in file "{filename}" at the beginning')
-                            break  # Found a match at the start, no need to check further patterns for this file
+                            if pattern_key not in pattern_match_counts:
+                                pattern_match_counts[pattern_key] = 1
+                            else:
+                                pattern_match_counts[pattern_key] += 1
+                            break  # Found a match, no need to check further patterns for this file
 
-        if current_match_count != previous_match_count:
-            logging.info(f"Length {length} bytes: {current_match_count} files found with a pattern at the beginning.")
-            previous_match_count = current_match_count
-        else:
-            logging.debug(f"No change for length {length} bytes.")
+    # Log the results for each pattern
+    for pattern_key, count in pattern_match_counts.items():
+        byte_length, hex_value = pattern_key.split('_')
+        logging.info(f'Byte Length: {byte_length}, Pattern: {hex_value}, Matches: {count}')
 
     logging.debug('Pattern matching process completed.')
 

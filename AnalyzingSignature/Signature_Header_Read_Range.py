@@ -7,13 +7,13 @@ import os
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 INTERVAL_START = 4
-INTERVAL_END = 15
+INTERVAL_END = 140
 
 # Define the log file path with the timestamp included in the filename
-LOG_FILE_PATH = f'../Logfiles/log_signature_header_malicious_{INTERVAL_START}-{INTERVAL_END}_{timestamp}.txt'
+LOG_FILE_PATH = f'../Logfiles/log_signature_header_benign_{INTERVAL_START}-{INTERVAL_END}_{timestamp}.txt'
 READ_LENGTH = INTERVAL_END  # Assuming you want to read up to the INTERVAL_END byte
-DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/malicious'
-CSV_PATH = f'../DataExchange/datafile_signature_header_malicious_{INTERVAL_START}-{INTERVAL_END}.csv'
+DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'
+CSV_PATH = f'../DataExchange/datafile_signature_header_benign_{INTERVAL_START}-{INTERVAL_END}.csv'
 
 
 # Setup basic configuration for logging to write to a file

@@ -7,8 +7,8 @@ from multiprocessing import Pool, cpu_count
 # Initialize logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-START_BYTE = 1
-END_BYTE = 2000
+START_BYTE = 9000
+END_BYTE = 10000
 STEP = 1
 
 MALICIOUS_FILE = "/home/cs20m039/thesis/dataset1/malicious"

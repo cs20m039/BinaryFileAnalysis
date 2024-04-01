@@ -7,7 +7,7 @@ import datetime
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 # Define the log file path with the timestamp included in the filename
-LOG_FILE_PATH = f'../Logfiles/log_entropy_compare_header_{timestamp}.txt'
+LOG_FILE_PATH = f'../Logfiles/log_entropy_compare_header_1-500_malicious_{timestamp}.txt'
 
 # Configure logging
 logging.basicConfig(level=logging.INFO,  # Adjust as needed
@@ -64,8 +64,8 @@ def compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_ha
 # Main execution
 if __name__ == "__main__":
     # Adjust these file paths according to your environment
-    MALICIOUS_INPUT_CSV = "../DataExchange/datafile_entropy_header_malicious_1-500.csv"
-    BENIGN_INPUT_CSV = "../DataExchange/datafile_entropy_header_benign_1-500.csv"
+    MALICIOUS_INPUT_CSV = "../DataExchange/datafile_entropy_header_benign_1-500.csv"
+    BENIGN_INPUT_CSV = "../DataExchange/datafile_entropy_header_malicious_1-500.csv"
 
    # MALICIOUS_INPUT_CSV = "../DataExchange/datafile_read_entropy_benign_1-1000.csv"
    # BENIGN_INPUT_CSV = "../DataExchange/datafile_read_entropy_malicious_1-1000.csv"
