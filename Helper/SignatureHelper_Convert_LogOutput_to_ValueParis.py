@@ -1075,11 +1075,10 @@ data_str = """
 2024-04-01 15:27:11,068 - INFO - Byte Length: 4, Pattern: cffaedfe, Matches: 52
 2024-04-01 15:27:11,068 - INFO - Byte Length: 4, Pattern: 3c68746d, Matches: 5
 """
-
-# Splitting the string into lines and parsing each line
+# Splitting the string into lines and parsing each line.
 data_lines = data_str.strip().split("\n")
 
-# Parsing the lines into a structured format
+# Parsing the lines into a structured format.
 data = []
 for line in data_lines:
     parts = line.split(" - ")
@@ -1090,7 +1089,7 @@ for line in data_lines:
     matches = int(matches.split(": ")[-1])
     data.append({"byte_length": byte_length, "pattern": pattern, "matches": matches})
 
-# Grouping data by byte_length
+# Grouping data by byte_length.
 grouped_data = {}
 for entry in data:
     bl = entry["byte_length"]
@@ -1099,8 +1098,15 @@ for entry in data:
     grouped_data[bl]["patterns"].add(entry["pattern"])
     grouped_data[bl]["total_matches"] += entry["matches"]
 
-# Print output
-for bl in sorted(grouped_data.keys(), reverse=True):
-    print(f"Byte length: {bl}")
-    print(f"Count of different patterns: {len(grouped_data[bl]['patterns'])}")
-    print(f"Matches of each byte length: {grouped_data[bl]['total_matches']}\n")
+# Preparing the output strings, now with byte_lengths in ascending order.
+byte_lengths = sorted(grouped_data.keys())
+pattern_counts = [len(grouped_data[bl]["patterns"]) for bl in byte_lengths]
+matches_counts = [grouped_data[bl]["total_matches"] for bl in byte_lengths]
+
+byte_lengths_str = ', '.join(map(str, byte_lengths))
+pattern_counts_str = ', '.join(map(str, pattern_counts))
+matches_counts_str = ', '.join(map(str, matches_counts))
+
+print(f"Byte lengths: {byte_lengths_str}")
+print(f"Count of different patterns: {pattern_counts_str}")
+print(f"Matches of each byte length: {matches_counts_str}")
