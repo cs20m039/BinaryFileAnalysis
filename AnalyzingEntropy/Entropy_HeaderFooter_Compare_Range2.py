@@ -5,12 +5,12 @@ from collections import defaultdict
 # Set up logging to file
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
-                    filename='../Logfiles/entropy_headerfooter_compare.log',  # Log file path
+                    filename='../Logfiles/entropy_headerfooter_compare2.log',  # Log file path
                     filemode='w')  # 'w' for overwrite, 'a' for append
 
 # Update these paths to the correct locations of your CSV files
-MALICIOUS_INPUT_CSV = "../DataExchange/datafile_entropy_headerfooter_benign_1-500.csv"
-BENIGN_INPUT_CSV = "../DataExchange/datafile_entropy_headerfooter_malicious_1-500.csv"
+MALICIOUS_INPUT_CSV = "../DataExchange/datafile_entropy_headerfooter_malicious_1-500.csv"
+BENIGN_INPUT_CSV = "../DataExchange/datafile_entropy_headerfooter_benign_1-500.csv"
 
 def read_entropy_values(csv_path):
     """Read entropy values and corresponding file paths from a CSV file."""

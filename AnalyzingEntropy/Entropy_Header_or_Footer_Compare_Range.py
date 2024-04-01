@@ -1,11 +1,19 @@
 import csv
 import logging
+import datetime
+
+
+# Generate a timestamp string in the desired format
+timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+# Define the log file path with the timestamp included in the filename
+LOG_FILE_PATH = f'../Logfiles/log_entropy_compare_header_{timestamp}.txt'
 
 # Configure logging
 logging.basicConfig(level=logging.INFO,  # Adjust as needed
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     handlers=[
-                        logging.FileHandler('../Logfiles/comparison_output.log', mode='w'),
+                        logging.FileHandler(LOG_FILE_PATH, mode='w'),
                         logging.StreamHandler()
                     ])
 
@@ -36,14 +44,14 @@ def compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_ha
     focusing on exact matches. Logs the count of matching benign hashes."""
     logging.info("Starting comparison of entropy values...")
     for header in entropy_hashes_malicious:
-        logging.info(f"Processing {header}:")
+        logging.debug(f"Processing {header}:")
         for value_malicious, hashes_malicious in entropy_hashes_malicious[header].items():
             logging.debug(f"Checking malicious value: {value_malicious}")
             if value_malicious in entropy_hashes_benign[header]:
                 hashes_benign = entropy_hashes_benign[header][value_malicious]
                 count_benign = len(hashes_benign)
 
-                logging.info(f"{header} - Entropy Value: {value_malicious} - Match found with {count_benign} benign hashes.")
+                logging.info(f"{header} - Entropy Value: {value_malicious} - Match: {count_benign}")
                 for hash_malicious in hashes_malicious:
                     logging.debug(f"  - Malicious Hash: {hash_malicious}")
                 for hash_benign in hashes_benign:
@@ -56,8 +64,12 @@ def compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_ha
 # Main execution
 if __name__ == "__main__":
     # Adjust these file paths according to your environment
-    MALICIOUS_INPUT_CSV = "../DataExchange/datafile_read_entropy_malicious_1-1000.csv"
-    BENIGN_INPUT_CSV = "../DataExchange/datafile_read_entropy_benign_1-1000.csv"
+    MALICIOUS_INPUT_CSV = "../DataExchange/datafile_entropy_header_malicious_1-500.csv"
+    BENIGN_INPUT_CSV = "../DataExchange/datafile_entropy_header_benign_1-500.csv"
+
+   # MALICIOUS_INPUT_CSV = "../DataExchange/datafile_read_entropy_benign_1-1000.csv"
+   # BENIGN_INPUT_CSV = "../DataExchange/datafile_read_entropy_malicious_1-1000.csv"
+
 
     entropy_hashes_malicious = read_entropy_values_with_hashes(MALICIOUS_INPUT_CSV)
     entropy_hashes_benign = read_entropy_values_with_hashes(BENIGN_INPUT_CSV)

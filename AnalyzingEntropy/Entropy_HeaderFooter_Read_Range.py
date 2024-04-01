@@ -7,14 +7,15 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 START_BYTE = 1
-END_BYTE = 300
+END_BYTE = 500
 STEP = 1
 
 MALICIOUS_FILE = "/home/cs20m039/thesis/dataset1/malicious"
 BENIGN_FILE = "/home/cs20m039/thesis/dataset1/benign"
 
-MALICIOUS_OUTPUT_CSV = "../DataExchange/entropy_values_malicious_FirstLastBytes.csv"
-BENIGN_OUTPUT_CSV = "../DataExchange/entropy_values_benign_FirstLastBytes.csv"
+MALICIOUS_OUTPUT_CSV =  f"../DataExchange/datafile_entropy_headerfooter_malicious_{START_BYTE}-{END_BYTE}.csv"
+BENIGN_OUTPUT_CSV =  f"../DataExchange/datafile_entropy_headerfooter_benign_{START_BYTE}-{END_BYTE}.csv"
+
 
 def shannon_entropy(data):
     """Calculate the Shannon entropy of a given dataset."""
@@ -35,7 +36,7 @@ def calculate_and_write_entropy(directory, csv_file_path, start_byte, end_byte, 
     with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
         csvwriter = csv.writer(csvfile)
         # Adjust headers to indicate header and footer entropy values
-        headers = ['Hash'] + [f'HeaderEntropy{i}' for i in range(start_byte, end_byte + 1, step)] + [f'FooterEntropy{i}' for i in range(start_byte, end_byte + 1, step)]
+        headers = ['FileHash'] + [f'HeaderEntropy{i}' for i in range(start_byte, end_byte + 1, step)] + [f'FooterEntropy{i}' for i in range(start_byte, end_byte + 1, step)]
         csvwriter.writerow(headers)
 
         for root, _, files in os.walk(directory):
