@@ -23,39 +23,30 @@ data_B = {
     'Benign Percentage': [88.2, 94.78, 88.99, 89.8, 91.93, 89.26, 65.85, 53.8, 56.69, 49.15, 46.39, 39.55, 44.29, 36.89, 40.25, 35.9, 39.59, 34.76, 30.42, 28.92, 27.61, 23.86, 24.46, 22.08, 25.23, 24.47, 23.14, 20.65, 20.7, 18.64, 20.86, 18.23, 19.02, 21.39, 22.18, 20.07, 22.19, 21.0, 18.05, 18.13, 17.97, 17.62, 17.71, 17.14, 17.16, 17.42, 17.12, 17.22, 17.18, 17.42, 17.53, 17.11, 17.08, 17.16, 16.9, 16.96, 16.89, 16.88, 17.04, 17.04, 17.23, 16.9, 17.04, 16.87, 16.59, 16.7, 16.8, 16.53, 16.95, 17.0, 16.43, 16.67, 16.58, 16.67, 17.36, 16.84, 16.57, 16.83, 16.55, 16.48, 16.46, 16.45, 16.44, 16.43, 16.41, 16.51, 16.47, 16.44, 16.48, 16.41, 16.44, 16.46, 16.41, 16.4, 16.41, 16.44, 16.4, 16.42, 16.5, 16.58, 16.47, 16.36, 16.37, 16.41, 16.38, 16.42, 16.35, 16.38, 16.37, 16.36, 16.33, 16.35, 16.43, 16.37, 16.35, 16.36, 16.33, 16.34, 16.38, 16.42, 16.34, 16.37, 16.38, 16.39, 16.14, 15.88, 10.75, 9.93, 9.85, 13.63, 9.05, 8.06, 11.59, 12.84, 12.48, 10.11, 11.22, 11.59, 5.17, 7.35, 4.82, 6.9, 4.56, 4.59, 3.23, 2.42, 3.77, 3.27, 2.21, 1.48, 1.37, 1.4, 2.15, 0.98, 1.23, 1.14, 0.78, 0.96, 0.56, 0.42, 0.63, 0.41, 0.4, 0.39, 0.34, 0.25, 0.19, 0.22, 0.2, 0.24, 0.18, 0.1, 0.08, 0.05, 0.02, 0.04, 0.07, 0.06, 0.11, 0.04, 0.09, 0.03, 0.01, 0.02, 0.01, 0.01, 0.01, 0.01, 0.02, 0.01, 0.02, 0.04, 0.02, 0.01, 0.02, 0.01, 0.03, 0.01, 0.02, 0.01, 0.03, 0.01, 0.03, 0.01, 0.02, 0.01, 0.02, 0.01, 0.02, 0.01, 0.02, 0.01, '0'],
 }
 
-# Convert to pandas DataFrames
 df_A = pd.DataFrame(data_A)
 df_B = pd.DataFrame(data_B)
 
 # Merge the data on 'Pattern Length', filling missing values with zeros
 merged_df = pd.merge(df_A, df_B, on='Pattern Length', how='outer', suffixes=(' S', ' E')).fillna(0)
 
-# Function to replace entire rows of zeros (except for the first column) with the last non-zero row
-def replace_zero_rows_with_last_nonzero(df):
-    mask = (df.iloc[:, 1:] == 0).all(axis=1)
-    last_nonzero_row = None
-    for i, row in df.iterrows():
-        if mask[i]:
-            if last_nonzero_row is not None:
-                df.iloc[i, 1:] = last_nonzero_row.iloc[1:]
-        else:
-            last_nonzero_row = row
-    return df
+# Iterate backwards to fill zeros with the value from the first previous non-zero row
+for col in merged_df.columns[1:]:  # Skip 'Pattern Length'
+    for i in range(len(merged_df) - 2, -1, -1):  # Start from the second to last row
+        if merged_df.loc[i, col] == 0:
+            merged_df.loc[i, col] = merged_df.loc[i + 1, col]
 
-# Apply the function
-merged_df = replace_zero_rows_with_last_nonzero(merged_df)
-
-# Correcting data types where necessary, focusing on the columns modified by replace_zero_rows_with_last_nonzero
-for column in merged_df.columns[1:]:  # Excluding 'Pattern Length' from type correction
+# Correcting data types
+for column in merged_df.columns[1:]:  # Exclude 'Pattern Length' from type correction
     if 'Percentage' in column:
         merged_df[column] = merged_df[column].astype(float).round(2)
     else:
-        # Assuming all other columns should be integers, adjust as necessary
         merged_df[column] = merged_df[column].astype(int)
 
 # Display the modified DataFrame
 print(merged_df)
-merged_df.to_csv('../DataStore/Panda_Master_Signature_Entropy.csv', index=False)
+
+# Save the DataFrame to a CSV file
+merged_df.to_csv('Panda_Master_Signature_Entropy.csv', index=False)
 
 
 

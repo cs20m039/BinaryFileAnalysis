@@ -9,6 +9,7 @@ logging.basicConfig(level=logging.INFO,
                     filemode='w')  # 'w' for overwrite, 'a' for append
 
 # Update these paths to the correct locations of your CSV files
+# Update these paths to the correct locations of your CSV files
 MALICIOUS_INPUT_CSV = "../DataExchange/datafile_entropy_headerfooter_malicious_1-500.csv"
 BENIGN_INPUT_CSV = "../DataExchange/datafile_entropy_headerfooter_benign_1-500.csv"
 

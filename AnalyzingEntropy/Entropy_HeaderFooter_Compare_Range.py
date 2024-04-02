@@ -1,12 +1,18 @@
 import csv
 import logging
 from collections import defaultdict
+import datetime
+
+# Generate a timestamp string in the desired format
+timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 # Set up logging to file
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
-                    filename='../Logfiles/entropy_headerfooter_compare.log',  # Log file path
+                    filename=f'../Logfiles/log_entropy_compare_headerfooter_benign{timestamp}.log',  # Log file path
                     filemode='w')  # 'w' for overwrite, 'a' for append
+
+
 
 # Update these paths to the correct locations of your CSV files
 MALICIOUS_INPUT_CSV = "../DataExchange/datafile_entropy_headerfooter_benign_1-500.csv"
