@@ -28,7 +28,7 @@ elif platform.system() == 'Darwin':  # macOS
     exclusion_directories = ['/System', '/Library', os.path.expanduser('~/Library'), '/sbin', '/usr/bin', '/usr/sbin',
                              '/Volumes', '/private', '/.Spotlight-V100', '/.fseventsd', '/dev']
 elif platform.system() == 'Linux':
-    directory_to_scan = "/"  # Customise: target directory for Linux
+    directory_to_scan = "/home/cs20m039/thesis/dataset1"  # Customise: target directory for Linux
     exclusion_directories = ['/sys/kernel/security']
   #  exclusion_directories = ['/sys', '/proc', '/dev', '/snap']
 
@@ -135,6 +135,51 @@ def compare_signatures(directory, patterns):
 
 if __name__ == "__main__":
     start_time = time.time()
+    print(f"Directory to scan: {directory_to_scan}")
+    print("bytes_to_read", "files_analyzed", "malware_count", "benign_count", "unknown_count", "duration")
+    # List of dictionaries specifying CSV files and corresponding bytes to read
+    signature_files_info = [
+        {"file": "Signatures/datafile_signature_header_50.csv", "bytes_to_read": 50},
+        {"file": "Signatures/datafile_signature_header_100.csv", "bytes_to_read": 100},
+        {"file": "Signatures/datafile_signature_header_150.csv", "bytes_to_read": 150},
+        {"file": "Signatures/datafile_signature_header_200.csv", "bytes_to_read": 200},
+        {"file": "Signatures/datafile_signature_header_250.csv", "bytes_to_read": 250},
+        {"file": "Signatures/datafile_signature_header_300.csv", "bytes_to_read": 300},
+        {"file": "Signatures/datafile_signature_header_350.csv", "bytes_to_read": 350},
+        {"file": "Signatures/datafile_signature_header_400.csv", "bytes_to_read": 400},
+        {"file": "Signatures/datafile_signature_header_450.csv", "bytes_to_read": 450},
+        {"file": "Signatures/datafile_signature_header_500.csv", "bytes_to_read": 500},
+        # Add more dictionaries for each CSV file as needed
+    ]
+
+    # Iterate through each dictionary in the list
+    for file_info in signature_files_info:
+        config_start_time = time.time()
+        binary_signatures_csv = file_info["file"]
+        bytes_to_read = file_info["bytes_to_read"]  # Update bytes_to_read for each file
+
+        #print(f"Processing file: {binary_signatures_csv} with {bytes_to_read} bytes to read")
+        binary_patterns = read_binary_signatures(binary_signatures_csv)
+        malware_count, benign_count, unknown_count, files_analyzed = compare_signatures(directory_to_scan, binary_patterns)
+        config_duration = time.time() - config_start_time
+
+
+        #print(f"Total files analyzed: {files_analyzed}")
+        #print(f"Ransomware found: {malware_count}")
+        #print(f"Benign found: {benign_count}")
+        #print(f"Unknown found: {unknown_count}")
+        #print(f"Scanning completed in {config_duration:.2f} seconds.")
+        # Optionally, print or log a separator for clarity between files
+        #print("-" * 50)
+        print(f"{bytes_to_read}, {files_analyzed}, {malware_count}, {benign_count}, {unknown_count}, {config_duration:.2f}")
+    total_duration = time.time() - start_time
+    print(f"Scanning completed in {total_duration:.2f} seconds.")
+
+
+
+"""
+if __name__ == "__main__":
+    start_time = time.time()
 
     binary_patterns = read_binary_signatures(binary_signatures_csv)
     malware_count, benign_count, unknown_count, files_analyzed = compare_signatures(directory_to_scan, binary_patterns)
@@ -147,3 +192,4 @@ if __name__ == "__main__":
     print(f"Benign found: {benign_count}")
     print(f"Unknown found: {unknown_count}")
     print(f"Scanning completed in {duration:.2f} seconds.")
+"""

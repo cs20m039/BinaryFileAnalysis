@@ -15,8 +15,21 @@ datetime_str = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
 
 # Paths
 log_file_name = f'entropy_value_analyzer_{datetime_str}.log'
-entropy_values_csv = 'datafile_entropy_137_firstBytes.csv'  # Updated CSV format
-bytes_to_read = 137
+#entropy_values_csv = 'Entropy/datafile_entropy_header_50.csv'  # Updated CSV format
+#bytes_to_read = 50
+
+entropy_scan_configs = [
+    {"csv_file": "Entropy/datafile_entropy_header_50.csv", "bytes_to_read": 50},
+    {"csv_file": "Entropy/datafile_entropy_header_100.csv", "bytes_to_read": 100},
+    {"csv_file": "Entropy/datafile_entropy_header_150.csv", "bytes_to_read": 150},
+    {"csv_file": "Entropy/datafile_entropy_header_200.csv", "bytes_to_read": 200},
+    {"csv_file": "Entropy/datafile_entropy_header_250.csv", "bytes_to_read": 250},
+    {"csv_file": "Entropy/datafile_entropy_header_300.csv", "bytes_to_read": 300},
+    {"csv_file": "Entropy/datafile_entropy_header_350.csv", "bytes_to_read": 350},
+    {"csv_file": "Entropy/datafile_entropy_header_400.csv", "bytes_to_read": 400},
+    {"csv_file": "Entropy/datafile_entropy_header_450.csv", "bytes_to_read": 450},
+    {"csv_file": "Entropy/datafile_entropy_header_500.csv", "bytes_to_read": 500},
+]
 
 if platform.system() == 'Windows':
     username = os.environ.get('USERNAME')
@@ -28,7 +41,7 @@ elif platform.system() == 'Darwin':
     exclusion_directories = ['/System', '/Library', os.path.expanduser('~/Library'), '/sbin', '/usr/bin', '/usr/sbin',
                              '/Volumes', '/private', '/.Spotlight-V100', '/.fseventsd', '/dev']
 elif platform.system() == 'Linux':
-    directory_to_scan = "/"  # Customise: target directory for Linux
+    directory_to_scan = "/home/cs20m039/thesis/dataset1/benign"  # Customise: target directory for Linux
     exclusion_directories = ['/sys/kernel/security']
 #  exclusion_directories = ['/sys', '/proc', '/dev', '/snap']
 
@@ -145,20 +158,35 @@ def compare_entropy(directory, patterns):
     return files_scanned, matches
 
 
-entropy_patterns = read_entropy_values(entropy_values_csv)
-files_scanned, matches = compare_entropy(directory_to_scan, entropy_patterns)
+#entropy_patterns = read_entropy_values(entropy_values_csv)
+#files_scanned, matches = compare_entropy(directory_to_scan, entropy_patterns)
 
-if __name__ == "__main__":
+
+def main():
     start_time = time.time()
 
-    entropy_patterns = read_entropy_values(entropy_values_csv)
-    files_scanned, matches = compare_entropy(directory_to_scan, entropy_patterns)
+    for config in entropy_scan_configs:
+        config_start_time = time.time()
+        global bytes_to_read
+        bytes_to_read = config["bytes_to_read"]
 
+        #print(f"\nScanning with config: {config}")
+
+        entropy_patterns = read_entropy_values(config["csv_file"])
+        files_scanned, matches = compare_entropy(directory_to_scan, entropy_patterns)
+        config_duration = time.time() - config_start_time
+        #print(f"Directory to scan: {directory_to_scan}")
+        #print(f"CSV File: {config['csv_file']}")
+        #print(f"Bytes to read: {bytes_to_read}")
+        #print(f"Total files analyzed: {files_scanned}")
+        #print(f"Malware found: {len(matches['malware'])}")
+        #print(f"Benign found: {len(matches['benign'])}")
+        #print(f"Unknown found: {len(matches['unknown'])}")
+        #print(f"Duration of this scan: {config_duration:.2f} seconds")
+        print(f"{bytes_to_read}, {files_scanned}, {len(matches['malware'])}, {len(matches['benign'])}, {len(matches['unknown'])}, {config_duration:.2f}")
     duration = time.time() - start_time
+    print(f"\nTotal scanning completed in {duration:.2f} seconds.")
 
-    print(f"Directory to scan: {directory_to_scan}")
-    print(f"Total files analyzed: {files_scanned}")
-    print(f"Ransomware found: {len(matches['malware'])}")
-    print(f"Benign found: {len(matches['benign'])}")
-    print(f"Unknown found: {len(matches['unknown'])}")
-    print(f"Scanning completed in {duration:.2f} seconds.")
+
+if __name__ == "__main__":
+    main()

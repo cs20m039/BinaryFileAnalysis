@@ -6,8 +6,8 @@ import logging
 # Initialize logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-START_BYTE = 4
-END_BYTE = 500
+START_BYTE = 1
+END_BYTE = 5
 STEP = 1
 
 MALICIOUS_FILE = "/home/cs20m039/thesis/dataset1/malicious"
