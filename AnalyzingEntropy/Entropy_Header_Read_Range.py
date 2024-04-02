@@ -6,7 +6,7 @@ import logging
 # Initialize logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-START_BYTE = 1
+START_BYTE = 4
 END_BYTE = 500
 STEP = 1
 
