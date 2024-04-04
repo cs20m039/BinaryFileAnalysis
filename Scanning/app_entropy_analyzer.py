@@ -41,7 +41,7 @@ elif platform.system() == 'Darwin':
     exclusion_directories = ['/System', '/Library', os.path.expanduser('~/Library'), '/sbin', '/usr/bin', '/usr/sbin',
                              '/Volumes', '/private', '/.Spotlight-V100', '/.fseventsd', '/dev']
 elif platform.system() == 'Linux':
-    directory_to_scan = "/home/cs20m039/thesis/dataset1/benign"  # Customise: target directory for Linux
+    directory_to_scan = "/home/cs20m039/thesis/dataset1/"  # Customise: target directory for Linux
     exclusion_directories = ['/sys/kernel/security']
 #  exclusion_directories = ['/sys', '/proc', '/dev', '/snap']
 
@@ -164,6 +164,8 @@ def compare_entropy(directory, patterns):
 
 def main():
     start_time = time.time()
+    print(f"Directory to scan: {directory_to_scan}")
+    print("Pattern, Total, Ransomware, Benign, Unknown, Time")
 
     for config in entropy_scan_configs:
         config_start_time = time.time()
@@ -184,6 +186,8 @@ def main():
         #print(f"Unknown found: {len(matches['unknown'])}")
         #print(f"Duration of this scan: {config_duration:.2f} seconds")
         print(f"{bytes_to_read}, {files_scanned}, {len(matches['malware'])}, {len(matches['benign'])}, {len(matches['unknown'])}, {config_duration:.2f}")
+        logger.info(f"{bytes_to_read}, {files_scanned}, {len(matches['malware'])}, {len(matches['benign'])}, {len(matches['unknown'])}, {config_duration:.2f}")
+
     duration = time.time() - start_time
     print(f"\nTotal scanning completed in {duration:.2f} seconds.")
 

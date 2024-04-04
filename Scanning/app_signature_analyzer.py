@@ -15,8 +15,8 @@ datetime_str = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
 
 # Application Paths
 log_file_name = f'binary_signature_analyzer_{datetime_str}.log'
-binary_signatures_csv = "datafile_signature_130.csv"  # Format: SHA256,bool,binary_signature
-bytes_to_read = 130
+#binary_signatures_csv = "datafile_signature_130.csv"  # Format: SHA256,bool,binary_signature
+#bytes_to_read = 130
 
 if platform.system() == 'Windows':
     username = os.environ.get('USERNAME')  # Username for Windows
@@ -34,7 +34,7 @@ elif platform.system() == 'Linux':
 
 # Logging
 logging.basicConfig(filename=log_file_name,
-                    level=logging.DEBUG,
+                    level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Logger instance
@@ -108,14 +108,14 @@ def compare_signatures(directory, patterns):
                     sha256_hash, boolean, matching_pattern = match_result
                     if boolean == '1':
                         malware_count += 1
-                        logger.debug(f"Malware found: {file_path}, SHA256={sha256_hash}, Pattern={matching_pattern}")
+                        logger.info(f"Malware found: {file_path}, SHA256={sha256_hash}, Pattern={matching_pattern}")
                     elif boolean == '0':
                         benign_count += 1
-                        logger.debug(
+                        logger.info(
                             f"Benign file found: {file_path}, SHA256={sha256_hash}, Pattern={matching_pattern}")
                     else:
                         unknown_count += 1
-                        logger.debug(
+                        logger.info(
                             f"Unknown file type for: {file_path}, SHA256={sha256_hash}, Boolean={boolean}, Pattern={matching_pattern}")
                 else:
                     # If no pattern matches, treat as unknown
@@ -136,7 +136,7 @@ def compare_signatures(directory, patterns):
 if __name__ == "__main__":
     start_time = time.time()
     print(f"Directory to scan: {directory_to_scan}")
-    print("bytes_to_read", "files_analyzed", "malware_count", "benign_count", "unknown_count", "duration")
+    print("Pattern, Total, Ransomware, Benign, Unknown, Time")
     # List of dictionaries specifying CSV files and corresponding bytes to read
     signature_files_info = [
         {"file": "Signatures/datafile_signature_header_50.csv", "bytes_to_read": 50},
@@ -174,22 +174,3 @@ if __name__ == "__main__":
         print(f"{bytes_to_read}, {files_analyzed}, {malware_count}, {benign_count}, {unknown_count}, {config_duration:.2f}")
     total_duration = time.time() - start_time
     print(f"Scanning completed in {total_duration:.2f} seconds.")
-
-
-
-"""
-if __name__ == "__main__":
-    start_time = time.time()
-
-    binary_patterns = read_binary_signatures(binary_signatures_csv)
-    malware_count, benign_count, unknown_count, files_analyzed = compare_signatures(directory_to_scan, binary_patterns)
-
-    duration = time.time() - start_time
-
-    print(f"Directory to scan: {directory_to_scan}")
-    print(f"Total files analyzed: {files_analyzed}")
-    print(f"Ransomware found: {malware_count}")
-    print(f"Benign found: {benign_count}")
-    print(f"Unknown found: {unknown_count}")
-    print(f"Scanning completed in {duration:.2f} seconds.")
-"""
