@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 START_BYTE = 4
 END_BYTE = 500
-READ_MODE = 'both'  # Can be 'header', 'footer', or 'both'
+READ_MODE = 'header'  # Can be 'header', 'footer', or 'both'
 
 MALICIOUS_FILE = "/home/cs20m039/thesis/dataset1/malicious"
 BENIGN_FILE = "/home/cs20m039/thesis/dataset1/benign"
@@ -28,8 +28,11 @@ def extract_hash_from_filepath(filepath):
 
 
 def calculate_and_write_entropy(directory, output_csv_prefix, start_byte, end_byte, read_mode, file_type):
+    total_files_attempted = 0
+    total_files_read = 0
+    files_skipped_due_to_length = 0
     if read_mode == 'both':
-        output_csv_path = f"{output_csv_prefix}{file_type}_{read_mode}_header_footer_{start_byte}-{end_byte}.csv"
+        output_csv_path = f"{output_csv_prefix}{file_type}_{read_mode}_{start_byte}-{end_byte}.csv"
     else:
         output_csv_path = f"{output_csv_prefix}{file_type}_{read_mode}_{start_byte}-{end_byte}.csv"
 
@@ -45,6 +48,7 @@ def calculate_and_write_entropy(directory, output_csv_prefix, start_byte, end_by
 
         for root, _, files in os.walk(directory):
             for file in files:
+                total_files_attempted += 1
                 file_path = os.path.join(root, file)
                 try:
                     with open(file_path, 'rb') as f:
@@ -70,11 +74,17 @@ def calculate_and_write_entropy(directory, output_csv_prefix, start_byte, end_by
 
                         hash_value = extract_hash_from_filepath(file_path)
                         csvwriter.writerow([hash_value] + entropy_values)
+                        total_files_read += 1
                 except Exception as e:
                     logging.error(f"Error processing {file_path}: {e}")
+    return total_files_attempted, total_files_read, files_skipped_due_to_length
 
+if __name__ == "__main__":
+    # Example usage for different modes with statistics printing
+    malicious_stats = calculate_and_write_entropy(MALICIOUS_FILE, OUTPUT_CSV_PREFIX, START_BYTE, END_BYTE, READ_MODE, 'malicious')
+    logging.info(f"Malicious files - Total attempted: {malicious_stats[0]}, Total read: {malicious_stats[1]}, Skipped due to length: {malicious_stats[2]}")
 
-# Example usage for different modes
-calculate_and_write_entropy(MALICIOUS_FILE, OUTPUT_CSV_PREFIX, START_BYTE, END_BYTE, READ_MODE, 'malicious')
-calculate_and_write_entropy(BENIGN_FILE, OUTPUT_CSV_PREFIX, START_BYTE, END_BYTE, READ_MODE, 'benign')
+    benign_stats = calculate_and_write_entropy(BENIGN_FILE, OUTPUT_CSV_PREFIX, START_BYTE, END_BYTE, READ_MODE, 'benign')
+    logging.info(f"Benign files - Total attempted: {benign_stats[0]}, Total read: {benign_stats[1]}, Skipped due to length: {benign_stats[2]}")
+
 
