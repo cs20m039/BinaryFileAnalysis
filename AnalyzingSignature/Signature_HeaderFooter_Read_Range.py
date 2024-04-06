@@ -6,13 +6,10 @@ import os
 import logging
 import datetime
 
-# Generate a timestamp string in the desired format
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-# Define the log file path with the timestamp included in the filename
 LOG_FILE_PATH = f'../Logfiles/log-read-headerFooter_{timestamp}.txt'
 
-# Setup basic configuration for logging to write to a file
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     filename=LOG_FILE_PATH,
@@ -32,13 +29,11 @@ def read_bytes_of_file(file_path):
             bytes_read = file.read(READ_LENGTH)
             file.seek(max(0, file_size - READ_LENGTH))
             last_bytes_read = file.read(READ_LENGTH)
-
             for length in range(INTERVAL_START, INTERVAL_END + 1):
                 first_bytes = bytes_read[:length].hex() if len(bytes_read) >= length else bytes_read.hex()
                 last_bytes = last_bytes_read[-length:].hex() if len(last_bytes_read) >= length else last_bytes_read.hex()
                 bytes_data[f'{length}ByteFirst'] = first_bytes
                 bytes_data[f'{length}ByteLast'] = last_bytes
-
             return bytes_data
     except Exception as e:
         logging.error(f"Error processing {file_path}: {e}")
@@ -58,14 +53,12 @@ def analyze_files_recursive(directory_path, csv_path):
                     full_path = os.path.join(dirpath, filename)
                     bytes_data = read_bytes_of_file(full_path)
                     if bytes_data:
-                        # Extract the SHA256 hash from the filename
                         hash_value = filename.split('.')[0]
                         row = [hash_value] + [bytes_data.get(f'{i}ByteFirst', '') for i in range(INTERVAL_START, INTERVAL_END + 1)] + [bytes_data.get(f'{i}ByteLast', '') for i in range(INTERVAL_START, INTERVAL_END + 1)]
                         writer.writerow(row)
                         file_count += 1
             else:
                 logging.debug(f"No files found in {dirpath}")
-
     logging.info(f"Total files analyzed: {file_count}")
 
 analyze_files_recursive(DIRECTORY_PATH, CSV_PATH)

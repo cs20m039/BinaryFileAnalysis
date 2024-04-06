@@ -3,24 +3,19 @@ import os
 import logging
 import datetime
 
-# Generate a timestamp string in the desired format
+
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-# Define the log file path with the timestamp included in the filename
 LOG_FILE_PATH = f'../Logfiles/log_signature_read_footer-benignFiles_{timestamp}.txt'
 
-# Setup basic configuration for logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     filename=LOG_FILE_PATH,
-                    filemode='w')  # 'w' to overwrite the log file each time
-
-#INTERVAL_START = 8200
-#INTERVAL_END = 8300
+                    filemode='w')
 
 INTERVAL_START = 6100
 INTERVAL_END = 6300
-READ_LENGTH = INTERVAL_END  # Assuming reading up to INTERVAL_END byte
+READ_LENGTH = INTERVAL_END
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'
 CSV_PATH = f'../DataExchange/datafile_signature_footer_benign_{INTERVAL_START}-{INTERVAL_END}.csv'
 
@@ -38,8 +33,7 @@ def analyze_files_recursive(directory_path, csv_path):
     file_count = 0
     with open(csv_path, 'w', newline='') as csv_file:
         writer = csv.writer(csv_file)
-        writer.writerow(['FileHash'] + [f'{i}Byte' for i in range(INTERVAL_START, INTERVAL_END + 1)]) #SHA256 FileHash
-
+        writer.writerow(['FileHash'] + [f'{i}Byte' for i in range(INTERVAL_START, INTERVAL_END + 1)])
         for dirpath, _, filenames in os.walk(directory_path):
             logging.info(f"Processing {len(filenames)} files in {dirpath}") if filenames else logging.debug(f"No files found in {dirpath}")
             for filename in filenames:
@@ -50,5 +44,4 @@ def analyze_files_recursive(directory_path, csv_path):
                     file_count += 1
 
     logging.info(f"Total files analyzed: {file_count}")
-
 analyze_files_recursive(DIRECTORY_PATH, CSV_PATH)
