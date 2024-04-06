@@ -4,7 +4,6 @@ import math
 import logging
 from multiprocessing import Pool, cpu_count
 
-# Initialize logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 START_BYTE = 10000
@@ -13,13 +12,10 @@ STEP = 1
 
 MALICIOUS_FILE = "/home/cs20m039/thesis/dataset1/malicious"
 BENIGN_FILE = "/home/cs20m039/thesis/dataset1/benign"
-
 MALICIOUS_OUTPUT_CSV = f"../DataExchange/datafile_entropy_footer_malicious_{START_BYTE}-{END_BYTE}.csv"
 BENIGN_OUTPUT_CSV = f"../DataExchange/datafile_entropy_footer_benign_{START_BYTE}-{END_BYTE}.csv"
 
-
 def shannon_entropy(data):
-    """Calculate the Shannon entropy of a given dataset."""
     entropy = 0
     for x in set(data):
         p_x = float(data.count(x)) / len(data)
@@ -28,14 +24,11 @@ def shannon_entropy(data):
     return entropy
 
 def extract_hash_from_filepath(filepath):
-    """Extract hash value from the file path."""
-    # Assuming hash is the last part of the file path before extension
     filename = os.path.basename(filepath)
-    hash_value = filename.split('.')[0]  # Extracting hash before the first dot
+    hash_value = filename.split('.')[0]
     return hash_value
 
 def calculate_entropy_for_file(file_path, start_byte, end_byte, step):
-    """Calculate entropy values for a single file."""
     try:
         with open(file_path, 'rb') as f:
             data = f.read()
@@ -56,25 +49,20 @@ def calculate_entropy_for_file(file_path, start_byte, end_byte, step):
         return []
 
 def worker_task(args):
-    """Wrapper function for the pool worker."""
     return calculate_entropy_for_file(*args)
 
 def calculate_and_write_entropy_parallel(directory, csv_file_path, start_byte, end_byte, step):
-    """Calculate Shannon entropy in parallel and write to CSV."""
     args_list = []
     for root, _, files in os.walk(directory):
         for file in files:
             file_path = os.path.join(root, file)
             args_list.append((file_path, start_byte, end_byte, step))
 
-    # Determine the number of processes based on available CPU cores
     num_processes = cpu_count()
 
-    # Use multiprocessing Pool to parallelize the workload
     with Pool(processes=num_processes) as pool:
         results = pool.map(worker_task, args_list)
 
-    # Write results to CSV
     with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
         csvwriter = csv.writer(csvfile)
         headers = ['Hash'] + [f'Entropy{i}' for i in range(start_byte, end_byte + 1, step)]
@@ -83,6 +71,5 @@ def calculate_and_write_entropy_parallel(directory, csv_file_path, start_byte, e
             if result:  # Ensure the result is not empty
                 csvwriter.writerow(result)
 
-# Example usage with parallelization
 calculate_and_write_entropy_parallel(MALICIOUS_FILE, MALICIOUS_OUTPUT_CSV, START_BYTE, END_BYTE, STEP)
 calculate_and_write_entropy_parallel(BENIGN_FILE, BENIGN_OUTPUT_CSV, START_BYTE, END_BYTE, STEP)

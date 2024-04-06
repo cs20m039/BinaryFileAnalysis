@@ -2,15 +2,11 @@ import csv
 import logging
 import datetime
 
-
-# Generate a timestamp string in the desired format
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-# Define the log file path with the timestamp included in the filename
 LOG_FILE_PATH = f'../Logfiles/log_entropy_compare_footer_8000-9000_benign_{timestamp}.txt'
 
-# Configure logging
-logging.basicConfig(level=logging.INFO,  # Adjust as needed
+logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     handlers=[
                         logging.FileHandler(LOG_FILE_PATH, mode='w'),
@@ -18,18 +14,17 @@ logging.basicConfig(level=logging.INFO,  # Adjust as needed
                     ])
 
 def read_entropy_values_with_hashes(csv_path):
-    """Read entropy values and corresponding hashes from a CSV file."""
     logging.debug(f"Opening CSV file: {csv_path}")
-    entropy_hashes = {}  # Initialize to ensure a return value
+    entropy_hashes = {}
     try:
         with open(csv_path, 'r', encoding='utf-8') as csvfile:
             csvreader = csv.reader(csvfile)
-            headers = next(csvreader)[1:]  # Assumes first row is headers and skips 'Hash'
+            headers = next(csvreader)[1:]
             entropy_hashes = {header: {} for header in headers}
             for row in csvreader:
                 hash_value = row[0]
                 for header, value in zip(headers, row[1:]):
-                    if value:  # Ensure the value is not empty
+                    if value:
                         value = float(value)
                         if value not in entropy_hashes[header]:
                             entropy_hashes[header][value] = [hash_value]
@@ -40,8 +35,6 @@ def read_entropy_values_with_hashes(csv_path):
     return entropy_hashes
 
 def compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_hashes_benign):
-    """Compare entropy values from malicious dataset with all values from benign dataset,
-    focusing on exact matches. Logs the count of matching benign hashes."""
     logging.info("Starting comparison of entropy values...")
     for header in entropy_hashes_malicious:
         logging.debug(f"Processing {header}:")
@@ -60,16 +53,9 @@ def compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_ha
                 logging.debug(f"Entropy Value: {value_malicious} - No match found in benign hashes.")
     logging.info("Comparison of entropy values completed.")
 
-
-# Main execution
 if __name__ == "__main__":
-    # Adjust these file paths according to your environment
     MALICIOUS_INPUT_CSV = "../DataExchange/datafiles_entropy_footer/datafile_entropy_footer_benign_8000-9000.csv"
     BENIGN_INPUT_CSV = "../DataExchange/datafiles_entropy_footer/datafile_entropy_footer_malicious_8000-9000.csv"
-   # MALICIOUS_INPUT_CSV = "../DataExchange/datafile_read_entropy_benign_1-1000.csv"
-   # BENIGN_INPUT_CSV = "../DataExchange/datafile_read_entropy_malicious_1-1000.csv"
-
-
     entropy_hashes_malicious = read_entropy_values_with_hashes(MALICIOUS_INPUT_CSV)
     entropy_hashes_benign = read_entropy_values_with_hashes(BENIGN_INPUT_CSV)
 
