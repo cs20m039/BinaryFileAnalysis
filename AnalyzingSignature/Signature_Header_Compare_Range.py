@@ -17,6 +17,7 @@ logging.basicConfig(level=logging.INFO,
                     filename=LOG_FILE_PATH,
                     filemode='w')
 
+
 def get_byte_range_from_csv(csv_path):
     logging.debug('Determining the byte range from the CSV headers.')
     with open(csv_path, mode='r', newline='') as csv_file:
@@ -27,6 +28,7 @@ def get_byte_range_from_csv(csv_path):
     min_byte_length, max_byte_length = min(byte_lengths), max(byte_lengths)
     logging.debug(f'Minimum byte length: {min_byte_length}, Maximum byte length: {max_byte_length}')
     return min_byte_length, max_byte_length
+
 
 def load_csv_data(csv_path):
     logging.debug('Loading CSV data.')
@@ -76,10 +78,10 @@ def find_pattern_matches(directory_path, hex_data_by_length, pattern_sources, mi
             logging.debug(f"No change for length {length} bytes.")
     logging.debug('Pattern matching process completed.')
 
+
 if __name__ == '__main__':
     logging.info('Script started.')
     min_length, max_length = get_byte_range_from_csv(CSV_PATH)
     hex_data_by_length, pattern_sources = load_csv_data(CSV_PATH)
     find_pattern_matches(DIRECTORY_PATH, hex_data_by_length, pattern_sources, min_length, max_length)
     logging.info('Script finished.')
-

@@ -13,22 +13,24 @@ READ_LENGTH = INTERVAL_END
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'
 CSV_PATH = f'../DataExchange/datafile_signature_header_benign_{INTERVAL_START}-{INTERVAL_END}.csv'
 
-
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     filename=LOG_FILE_PATH,
                     filemode='w')
+
 
 def read_bytes_of_file(file_path, read_length=READ_LENGTH, interval_start=INTERVAL_START, interval_end=INTERVAL_END):
     try:
         with open(file_path, 'rb') as file:
             bytes_data = {'FileHash': os.path.splitext(os.path.basename(file_path))[0]}
             bytes_read = file.read(read_length)
-            bytes_data.update({f'{length}Byte': bytes_read[:length].hex() for length in range(interval_start, min(len(bytes_read)+1, interval_end + 1))})
+            bytes_data.update({f'{length}Byte': bytes_read[:length].hex() for length in
+                               range(interval_start, min(len(bytes_read) + 1, interval_end + 1))})
             return bytes_data
     except Exception as e:
         logging.error(f"Error processing file '{file_path}': {e}")
         return {}
+
 
 def analyze_files_recursive(directory_path, csv_path, interval_start=INTERVAL_START, interval_end=INTERVAL_END):
     file_count = 0
@@ -49,5 +51,6 @@ def analyze_files_recursive(directory_path, csv_path, interval_start=INTERVAL_ST
                     except Exception as e:
                         logging.error(f"Error processing file '{full_path}': {e}")
     logging.info(f"Total files analyzed: {file_count}")
+
 
 analyze_files_recursive(DIRECTORY_PATH, CSV_PATH)

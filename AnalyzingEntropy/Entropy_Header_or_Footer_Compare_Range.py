@@ -1,6 +1,6 @@
 import csv
-import logging
 import datetime
+import logging
 
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.INFO,
                         logging.FileHandler(LOG_FILE_PATH, mode='w'),
                         logging.StreamHandler()
                     ])
+
 
 def read_entropy_values_with_hashes(csv_path):
     logging.debug(f"Opening CSV file: {csv_path}")
@@ -34,6 +35,7 @@ def read_entropy_values_with_hashes(csv_path):
         logging.error(f"Error reading CSV file {csv_path}: {e}")
     return entropy_hashes
 
+
 def compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_hashes_benign):
     logging.info("Starting comparison of entropy values...")
     for header in entropy_hashes_malicious:
@@ -52,6 +54,7 @@ def compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_ha
             else:
                 logging.debug(f"Entropy Value: {value_malicious} - No match found in benign hashes.")
     logging.info("Comparison of entropy values completed.")
+
 
 if __name__ == "__main__":
     MALICIOUS_INPUT_CSV = "../DataExchange/datafiles_entropy_footer/datafile_entropy_footer_benign_8000-9000.csv"

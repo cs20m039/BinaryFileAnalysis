@@ -1,7 +1,7 @@
-import os
 import csv
-import math
 import logging
+import math
+import os
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -14,6 +14,7 @@ BENIGN_FILE = "/home/cs20m039/thesis/dataset1/benign"
 MALICIOUS_OUTPUT_CSV = f"../DataExchange/datafile_entropy_header_malicious_{START_BYTE}-{END_BYTE}.csv"
 BENIGN_OUTPUT_CSV = f"../DataExchange/datafile_entropy_header_benign_{START_BYTE}-{END_BYTE}.csv"
 
+
 def shannon_entropy(data):
     entropy = 0
     for x in set(data):
@@ -22,10 +23,12 @@ def shannon_entropy(data):
             entropy += - p_x * math.log(p_x, 2)
     return entropy
 
+
 def extract_hash_from_filepath(filepath):
     filename = os.path.basename(filepath)
     hash_value = filename.split('.')[0]
     return hash_value
+
 
 def calculate_and_write_entropy(directory, csv_file_path, start_byte, end_byte, step):
     with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
@@ -50,6 +53,7 @@ def calculate_and_write_entropy(directory, csv_file_path, start_byte, end_byte, 
                         csvwriter.writerow([hash_value] + entropy_values)
                 except Exception as e:
                     logging.error(f"Error processing {file_path}: {e}")
+
 
 # Example usage
 calculate_and_write_entropy(MALICIOUS_FILE, MALICIOUS_OUTPUT_CSV, START_BYTE, END_BYTE, STEP)

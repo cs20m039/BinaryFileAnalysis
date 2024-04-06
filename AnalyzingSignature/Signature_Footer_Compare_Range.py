@@ -1,7 +1,7 @@
 import csv
-import os
-import logging
 import datetime
+import logging
+import os
 
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
@@ -15,6 +15,7 @@ logging.basicConfig(level=logging.INFO,
 CSV_PATH = '../DataExchange/datafile_signature_footer_malicious_9060-9260.csv'
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'
 
+
 def get_byte_range_from_csv(csv_path):
     logging.debug('Determining the byte range from the CSV headers.')
     with open(csv_path, mode='r', newline='') as csv_file:
@@ -27,6 +28,7 @@ def get_byte_range_from_csv(csv_path):
 
     logging.debug(f'Minimum byte length: {min_byte_length}, Maximum byte length: {max_byte_length}')
     return min_byte_length, max_byte_length
+
 
 def load_csv_data(csv_path):
     logging.debug('Loading CSV data with hash values as identifiers.')
@@ -47,6 +49,7 @@ def load_csv_data(csv_path):
     logging.debug('CSV data loaded successfully with hash value identifiers.')
     return hex_data_by_length, pattern_sources
 
+
 def find_pattern_matches(directory_path, hex_data_by_length, pattern_sources, min_length, max_length):
     logging.debug('Starting pattern matching process.')
     previous_match_count = None
@@ -63,7 +66,8 @@ def find_pattern_matches(directory_path, hex_data_by_length, pattern_sources, mi
                         pattern_bytes = bytes.fromhex(hex_value)
                         if file_end.endswith(pattern_bytes):
                             source_file = pattern_sources[pattern_key]
-                            logging.debug(f'Match found: Pattern "{hex_value}" from "{source_file}" in file "{filename}" at the end')
+                            logging.debug(
+                                f'Match found: Pattern "{hex_value}" from "{source_file}" in file "{filename}" at the end')
                             break
         if current_match_count != previous_match_count:
             logging.info(f"Length {length} bytes: {current_match_count} files found with a pattern at the end.")
@@ -71,6 +75,7 @@ def find_pattern_matches(directory_path, hex_data_by_length, pattern_sources, mi
         else:
             logging.debug(f"No change for length {length} bytes.")
     logging.debug('Pattern matching process completed.')
+
 
 if __name__ == '__main__':
     logging.info('Script started.')

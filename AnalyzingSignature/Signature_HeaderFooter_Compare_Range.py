@@ -1,7 +1,7 @@
 import csv
-import os
-import logging
 import datetime
+import logging
+import os
 
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
@@ -15,6 +15,7 @@ logging.basicConfig(level=logging.INFO,
 CSV_PATH = '../DataExchange/datafile_signature_header_and_footer_malicious_4-300.csv'
 DIRECTORY_PATH = '/home/cs20m039/thesis/dataset1/benign'
 
+
 def get_byte_range_from_csv(csv_path):
     logging.debug('Determining the byte range from the CSV headers.')
     with open(csv_path, mode='r', newline='') as csv_file:
@@ -25,6 +26,7 @@ def get_byte_range_from_csv(csv_path):
     min_byte_length, max_byte_length = min(byte_lengths), max(byte_lengths)
     logging.debug(f'Minimum byte length: {min_byte_length}, Maximum byte length: {max_byte_length}')
     return min_byte_length, max_byte_length
+
 
 def load_csv_data(csv_path):
     logging.debug('Loading CSV data.')
@@ -45,6 +47,7 @@ def load_csv_data(csv_path):
                         pattern_sources[hex_value] = file_hash
     logging.debug('CSV data loaded successfully.')
     return hex_data_by_length, pattern_sources
+
 
 def find_pattern_matches(directory_path, hex_data_by_length, pattern_sources, min_length, max_length):
     logging.info('Starting pattern matching process.')
@@ -67,9 +70,11 @@ def find_pattern_matches(directory_path, hex_data_by_length, pattern_sources, mi
                     if start_match and end_match:
                         match_count += 1
         if match_count > 0 and match_count != previous_match_count:
-            logging.info(f"Length {length} bytes: {match_count} files found with matching patterns at both start and end.")
+            logging.info(
+                f"Length {length} bytes: {match_count} files found with matching patterns at both start and end.")
             previous_match_count = match_count
     logging.info('Pattern matching process completed.')
+
 
 def main():
     logging.info('Script started.')
@@ -77,6 +82,7 @@ def main():
     hex_data_by_length, pattern_sources = load_csv_data(CSV_PATH)
     find_pattern_matches(DIRECTORY_PATH, hex_data_by_length, pattern_sources, min_length, max_length)
     logging.info('Script finished.')
+
 
 if __name__ == '__main__':
     main()
