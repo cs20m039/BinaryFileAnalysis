@@ -34,19 +34,29 @@ def read_byte_sequences_with_hashes(csv_path):
         logging.error(f"Failed processing {csv_path}: {e}")
         return {}
 
+
 def compare_byte_sequences_and_log(byte_seq_hashes_mal, byte_seq_hashes_ben):
     logging.info("Starting byte sequence comparison...")
     for header in byte_seq_hashes_mal:
         if "Header" in header:
             footer_key = header.replace("Header", "Footer")
             for seq, mal_hashes in byte_seq_hashes_mal[header].items():
+                ben_hashes = byte_seq_hashes_ben.get(header, {}).get(seq, [])
+                if not ben_hashes:  # If no benign matches for the header, skip this sequence.
+                    continue
+
                 footer_matches = byte_seq_hashes_mal.get(footer_key, {})
                 for footer_seq, footer_mal_hashes in footer_matches.items():
-                    ben_hashes = byte_seq_hashes_ben.get(header, {}).get(seq, [])
                     footer_ben_hashes = byte_seq_hashes_ben.get(footer_key, {}).get(footer_seq, [])
-                    if ben_hashes and footer_ben_hashes:
-                        logging.info(f"{header} - Byte Sequence: {seq} - Match ({len(mal_hashes)} malicious, {len(ben_hashes)} benign matches) - "
-                                     f"{footer_key} - Byte Sequence: {footer_seq} - Match ({len(footer_mal_hashes)} malicious, {len(footer_ben_hashes)} benign matches)")
+                    if not footer_ben_hashes:  # If no benign matches for the footer, skip this sequence.
+                        continue
+
+                    # Check if the number of malicious and benign matches align for both header and footer.
+                    if len(mal_hashes) == len(footer_mal_hashes) and len(ben_hashes) == len(footer_ben_hashes):
+                        logging.info(
+                            f"{header} - Byte Sequence: {seq} - Match ({len(mal_hashes)} malicious, {len(ben_hashes)} benign matches) - "
+                            f"{footer_key} - Byte Sequence: {footer_seq} - Match ({len(footer_mal_hashes)} malicious, {len(footer_ben_hashes)} benign matches)")
+
 
 if __name__ == "__main__":
     mal_hashes = read_byte_sequences_with_hashes(MALICIOUS_INPUT_CSV)

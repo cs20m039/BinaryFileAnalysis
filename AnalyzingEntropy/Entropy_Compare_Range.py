@@ -2,7 +2,7 @@ import csv
 import datetime
 import logging
 
-READ_MODE = 'header'  # Adjust based on the mode used for generating CSVs
+READ_MODE = 'both'  # Adjust based on the mode used for generating CSVs
 MALICIOUS_INPUT_CSV = f"../DataExchange/datafile_entropy_malicious_{READ_MODE}_1-500.csv"
 BENIGN_INPUT_CSV = f"../DataExchange/datafile_entropy_benign_{READ_MODE}_1-500.csv"
 

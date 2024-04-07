@@ -5,7 +5,7 @@ import os
 
 INTERVAL_START = 1
 INTERVAL_END = 400
-READ_MODE = 'footer'
+READ_MODE = 'both'
 READ_LENGTH = INTERVAL_END
 MALICIOUS_DIRECTORY = "/home/cs20m039/thesis/dataset1/malicious"
 BENIGN_DIRECTORY = "/home/cs20m039/thesis/dataset1/benign"
