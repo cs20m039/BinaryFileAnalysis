@@ -2,29 +2,16 @@ import csv
 import logging
 import math
 import os
-from datetime import datetime
 
-timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
-LOG_FILE_PATH = f'../Logfiles/log_entropy_read_{timestamp}.log'
-
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s',
-                    handlers=[
-                        logging.FileHandler(LOG_FILE_PATH, mode='w'),
-                        logging.StreamHandler()
-                    ])
-
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 START_BYTE = 1
-END_BYTE = 500
+END_BYTE = 1000
 READ_MODE = ('header')  # Can be 'header', 'footer', or 'both'
 
 MALICIOUS_FILE = "/home/cs20m039/thesis/dataset1/malicious"
 BENIGN_FILE = "/home/cs20m039/thesis/dataset1/benign"
 OUTPUT_CSV_PREFIX = "../DataExchange/datafile_entropy_"
-
-
 
 def shannon_entropy(data):
     entropy = 0

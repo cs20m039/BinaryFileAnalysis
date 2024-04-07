@@ -19,7 +19,7 @@ def merge_with_boolean_and_column_value_skip_header(input_file_paths, output_fil
                     writer.writerow([row[0], 0, row[column_index]])
 
 # Example usage
-input_file_paths = ['../DataExchange/datafile_entropy_header_malicious_1-500.csv', '../DataExchange/datafile_entropy_header_benign_1-500.csv']  # Input file paths
+input_file_paths = ['../DataExchange/datafile_entropy_malicious_header_1-1000.csv', '../DataExchange/datafile_entropy_benign_header_1-1000.csv']  # Input file paths
 output_file_path = '../DataExchange/datafile_entropy_header_500.csv'  # Output file path
 
 

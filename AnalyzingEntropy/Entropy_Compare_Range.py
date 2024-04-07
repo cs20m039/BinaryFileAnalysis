@@ -2,9 +2,13 @@ import csv
 import datetime
 import logging
 
+READ_MODE = 'header'  # Adjust based on the mode used for generating CSVs
+MALICIOUS_INPUT_CSV = f"../DataExchange/datafile_entropy_malicious_{READ_MODE}_1-500.csv"
+BENIGN_INPUT_CSV = f"../DataExchange/datafile_entropy_benign_{READ_MODE}_1-500.csv"
+
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-LOG_FILE_PATH = f'../Logfiles/log_entropy_compare_{timestamp}.txt'
+LOG_FILE_PATH = f'../Logfiles/log_entropy_compare_{timestamp}.log'
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -12,7 +16,6 @@ logging.basicConfig(level=logging.INFO,
                         logging.FileHandler(LOG_FILE_PATH, mode='w'),
                         logging.StreamHandler()
                     ])
-
 
 def read_entropy_values_with_hashes(csv_path):
     logging.debug(f"Opening CSV file: {csv_path}")
@@ -36,34 +39,39 @@ def read_entropy_values_with_hashes(csv_path):
     return entropy_hashes
 
 
-def compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_hashes_benign):
-    logging.info("Starting comparison of entropy values...")
-    for header in entropy_hashes_malicious:
-        logging.debug(f"Processing {header}:")
-        for value_malicious, hashes_malicious in entropy_hashes_malicious[header].items():
-            logging.debug(f"Checking malicious value: {value_malicious}")
-            if value_malicious in entropy_hashes_benign[header]:
-                hashes_benign = entropy_hashes_benign[header][value_malicious]
-                count_benign = len(hashes_benign)
+def compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_hashes_benign, read_mode):
+    logging.info(f"Starting comparison of entropy values in {read_mode} mode...")
 
-                logging.info(f"{header} - Entropy Value: {value_malicious} - Match: {count_benign}")
-                for hash_malicious in hashes_malicious:
-                    logging.debug(f"  - Malicious Hash: {hash_malicious}")
-                for hash_benign in hashes_benign:
-                    logging.debug(f"  - Benign Hash: {hash_benign}")
-            else:
-                logging.debug(f"Entropy Value: {value_malicious} - No match found in benign hashes.")
-    logging.info("Comparison of entropy values completed.")
+    if read_mode == 'both':
+        # Logic specific to matching both header and footer.
+        for header in entropy_hashes_malicious:
+            if 'Header' in header:
+                corresponding_footer = header.replace('Header', 'Footer')
+                for value_malicious, hashes_malicious in entropy_hashes_malicious[header].items():
+                    if value_malicious in entropy_hashes_benign[
+                        header] and value_malicious in entropy_hashes_benign.get(corresponding_footer, {}):
+                        # Extracting and logging detailed information for both header and footer
+                        hashes_benign_header = entropy_hashes_benign[header][value_malicious]
+                        hashes_benign_footer = entropy_hashes_benign[corresponding_footer][value_malicious]
+                        logging.info(
+                            f"Match found - {header}: {value_malicious} ({len(hashes_malicious)} malicious, {len(hashes_benign_header)} benign matches), "
+                            f"{corresponding_footer}: {value_malicious} ({len(hashes_malicious)} malicious, {len(hashes_benign_footer)} benign matches)")
+    else:
+        # Handle "header" or "footer" modes.
+        for header in entropy_hashes_malicious:
+            # Ensure the header matches the mode we are analyzing (Header or Footer).
+            if (read_mode.capitalize() in header) or (read_mode == 'header' and 'Header' in header) or (
+                    read_mode == 'footer' and 'Footer' in header):
+                for value_malicious, hashes_malicious in entropy_hashes_malicious[header].items():
+                    if value_malicious in entropy_hashes_benign[header]:
+                        logging.info(f"{header} - Entropy Value: {value_malicious} - Match")
 
 
 if __name__ == "__main__":
-    READ_MODE = 'header'  # Adjust based on the mode used for generating CSVs
-    MALICIOUS_INPUT_CSV = f"../DataExchange/datafile_entropy_malicious_{READ_MODE}_4-500.csv"
-    BENIGN_INPUT_CSV = f"../DataExchange/datafile_entropy_benign_{READ_MODE}_4-500.csv"
     entropy_hashes_malicious = read_entropy_values_with_hashes(MALICIOUS_INPUT_CSV)
     entropy_hashes_benign = read_entropy_values_with_hashes(BENIGN_INPUT_CSV)
 
     if entropy_hashes_malicious and entropy_hashes_benign:
-        compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_hashes_benign)
+        compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_hashes_benign, READ_MODE)
     else:
         logging.error("Failed to read one or both CSV files. Exiting.")

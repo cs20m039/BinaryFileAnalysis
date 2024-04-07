@@ -1,5 +1,24 @@
 import csv
 import logging
+import os
+import sys
+from datetime import datetime
+import math
+from pathlib import Path
+
+# Setup basic configurations
+current_datetime = datetime.now()
+datetime_str = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
+log_file_name = f'app_combined_analyzer_{datetime_str}.log'
+
+logging.basicConfig(filename=log_file_name,
+                    level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger('combined_analyzer')
+
+
+import csv
+import logging
 import math
 import os
 import platform
@@ -16,7 +35,7 @@ datetime_str = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
 # Paths
 log_file_name = f'entropy_value_analyzer_{datetime_str}.log'
 
-entropy_data_files = [
+entropy_scan_configs = [
     {"csv_file": "Entropy/datafile_entropy_header_50.csv", "bytes_to_read": 50},
     {"csv_file": "Entropy/datafile_entropy_header_100.csv", "bytes_to_read": 100},
     {"csv_file": "Entropy/datafile_entropy_header_150.csv", "bytes_to_read": 150},
@@ -43,11 +62,10 @@ elif platform.system() == 'Linux':
     exclusion_directories = ['/sys/kernel/security']
 #  exclusion_directories = ['/sys', '/proc', '/dev', '/snap']
 
-
+# Logging configuration
 logging.basicConfig(filename=log_file_name,
                     level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s')
-
 logger = logging.getLogger('entropy_value_matcher')
 logger.setLevel(logging.DEBUG)
 
@@ -173,7 +191,7 @@ def main():
     print("Pattern, Total Scanned, Processed, Ransomware, Benign, Unknown, Time")
 
 
-    for config in entropy_data_files:
+    for config in entropy_scan_configs:
         config_start_time = time.time()
         global bytes_to_read
         bytes_to_read = config["bytes_to_read"]

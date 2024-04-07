@@ -5,8 +5,8 @@ import os
 
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-INTERVAL_START = 500
-INTERVAL_END = 500
+INTERVAL_START = 1
+INTERVAL_END = 800
 
 LOG_FILE_PATH = f'../Logfiles/log_signature_header_benign_{INTERVAL_START}-{INTERVAL_END}_{timestamp}.txt'
 READ_LENGTH = INTERVAL_END

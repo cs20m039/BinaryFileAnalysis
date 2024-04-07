@@ -15,8 +15,20 @@ datetime_str = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
 
 # Application Paths
 log_file_name = f'binary_signature_analyzer_{datetime_str}.log'
-#binary_signatures_csv = "datafile_signature_130.csv"  # Format: SHA256,bool,binary_signature
-#bytes_to_read = 130
+
+signature_data_files = [
+    {"file": "Signatures/datafile_signature_header_50.csv", "bytes_to_read": 50},
+    {"file": "Signatures/datafile_signature_header_100.csv", "bytes_to_read": 100},
+    {"file": "Signatures/datafile_signature_header_150.csv", "bytes_to_read": 150},
+    {"file": "Signatures/datafile_signature_header_200.csv", "bytes_to_read": 200},
+    {"file": "Signatures/datafile_signature_header_250.csv", "bytes_to_read": 250},
+    {"file": "Signatures/datafile_signature_header_300.csv", "bytes_to_read": 300},
+    {"file": "Signatures/datafile_signature_header_350.csv", "bytes_to_read": 350},
+    {"file": "Signatures/datafile_signature_header_400.csv", "bytes_to_read": 400},
+    {"file": "Signatures/datafile_signature_header_450.csv", "bytes_to_read": 450},
+    {"file": "Signatures/datafile_signature_header_500.csv", "bytes_to_read": 500},
+]
+
 
 if platform.system() == 'Windows':
     username = os.environ.get('USERNAME')  # Username for Windows
@@ -32,14 +44,13 @@ elif platform.system() == 'Linux':
     exclusion_directories = ['/sys/kernel/security']
   #  exclusion_directories = ['/sys', '/proc', '/dev', '/snap']
 
-# Logging
+
 logging.basicConfig(filename=log_file_name,
                     level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Logger instance
 logger = logging.getLogger('binary_pattern_matcher')
-
+logger.setLevel(logging.DEBUG)
 
 def read_binary_signatures(csv_file):
     """Read binary signatures from CSV file"""
@@ -65,6 +76,11 @@ def read_binary_signatures(csv_file):
 def compare_file_header(file_path, patterns):
     """Check if the first 137 bytes of the scanned files match any binary patterns from the CSV"""
     try:
+        # Check if the file is at least 500 bytes
+        if os.path.getsize(file_path) < 500:
+            logger.debug(f"Skipping file due to size < 500 bytes: {file_path}")
+            return None
+
         with open(file_path, 'rb') as file:
             file_header = file.read(bytes_to_read).hex()  # Read and convert to hex
             for sha256_hash, boolean, pattern in patterns:
@@ -138,22 +154,9 @@ if __name__ == "__main__":
     print(f"Directory to scan: {directory_to_scan}")
     print("Pattern, Total, Ransomware, Benign, Unknown, Time")
     # List of dictionaries specifying CSV files and corresponding bytes to read
-    signature_files_info = [
-        {"file": "Signatures/datafile_signature_header_50.csv", "bytes_to_read": 50},
-        {"file": "Signatures/datafile_signature_header_100.csv", "bytes_to_read": 100},
-        {"file": "Signatures/datafile_signature_header_150.csv", "bytes_to_read": 150},
-        {"file": "Signatures/datafile_signature_header_200.csv", "bytes_to_read": 200},
-        {"file": "Signatures/datafile_signature_header_250.csv", "bytes_to_read": 250},
-        {"file": "Signatures/datafile_signature_header_300.csv", "bytes_to_read": 300},
-        {"file": "Signatures/datafile_signature_header_350.csv", "bytes_to_read": 350},
-        {"file": "Signatures/datafile_signature_header_400.csv", "bytes_to_read": 400},
-        {"file": "Signatures/datafile_signature_header_450.csv", "bytes_to_read": 450},
-        {"file": "Signatures/datafile_signature_header_500.csv", "bytes_to_read": 500},
-        # Add more dictionaries for each CSV file as needed
-    ]
 
     # Iterate through each dictionary in the list
-    for file_info in signature_files_info:
+    for file_info in signature_data_files:
         config_start_time = time.time()
         binary_signatures_csv = file_info["file"]
         bytes_to_read = file_info["bytes_to_read"]  # Update bytes_to_read for each file
