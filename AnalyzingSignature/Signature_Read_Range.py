@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO,
 # Configuration
 INTERVAL_START = 1
 INTERVAL_END = 400  # Adjusted according to the setup configuration
-READ_MODE = 'both'  # Options: 'header', 'footer', 'both'
+READ_MODE = 'header'  # Options: 'header', 'footer', 'both'
 READ_LENGTH = INTERVAL_END  # Adjusted according to the setup configuration
 MALICIOUS_DIRECTORY = "/home/cs20m039/thesis/dataset1/malicious"
 BENIGN_DIRECTORY = "/home/cs20m039/thesis/dataset1/benign"
