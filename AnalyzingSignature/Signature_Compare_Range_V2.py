@@ -54,12 +54,63 @@ def compare_byte_sequences_and_print_hashes(byte_sequences_hashes_malicious, byt
             logging.debug(f"No matches found for {header} in {read_mode} mode.")
 
 
+def compare_header_footer_combined(byte_sequences_hashes_malicious, byte_sequences_hashes_benign):
+    logging.info("Starting combined header and footer byte sequence comparison...")
+
+    # Extract header and footer byte sequence information
+    headers_malicious = byte_sequences_hashes_malicious.get('ByteHeader', {})
+    footers_malicious = byte_sequences_hashes_malicious.get('ByteFooter', {})
+    headers_benign = byte_sequences_hashes_benign.get('ByteHeader', {})
+    footers_benign = byte_sequences_hashes_benign.get('ByteFooter', {})
+
+    for header_sequence in headers_malicious:
+        if header_sequence in headers_benign:
+            for footer_sequence in footers_malicious:
+                if footer_sequence in footers_benign:
+                    # For each matching header sequence, find the intersection of file hashes between malicious and benign
+                    matching_header_hashes_malicious = set(headers_malicious[header_sequence])
+                    matching_header_hashes_benign = set(headers_benign[header_sequence])
+                    # Do the same for footer sequences
+                    matching_footer_hashes_malicious = set(footers_malicious[footer_sequence])
+                    matching_footer_hashes_benign = set(footers_benign[footer_sequence])
+
+                    # Find common file hashes across both header and footer, for both datasets
+                    common_hashes_malicious = matching_header_hashes_malicious.intersection(
+                        matching_footer_hashes_malicious)
+                    common_hashes_benign = matching_header_hashes_benign.intersection(matching_footer_hashes_benign)
+
+                    if common_hashes_malicious and common_hashes_benign:
+                        logging.info(
+                            f"1ByteHeader - Byte Sequence: {header_sequence} - Match ({len(common_hashes_malicious)} malicious, {len(common_hashes_benign)} benign matches) "
+                            f"and 1ByteFooter - Byte Sequence: {footer_sequence} - Match ({len(common_hashes_malicious)} malicious, {len(common_hashes_benign)} benign matches)")
+
+def report_combined_header_footer_matches(byte_sequences_hashes_malicious, byte_sequences_hashes_benign):
+    logging.info("Reporting combined header and footer matches...")
+
+    # Iterate over malicious header byte sequences and their corresponding file hashes
+    for header_sequence, hashes_malicious in byte_sequences_hashes_malicious.get('ByteHeader', {}).items():
+        # Check if the same byte sequence exists in the benign headers and get the intersection of file hashes
+        if header_sequence in byte_sequences_hashes_benign.get('ByteHeader', {}):
+            for footer_sequence, hashes_malicious_footer in byte_sequences_hashes_malicious.get('ByteFooter', {}).items():
+                # Ensure the same byte sequence exists in the benign footers
+                if footer_sequence in byte_sequences_hashes_benign.get('ByteFooter', {}):
+                    # Now check for any file hash that has both matching header and footer sequences across datasets
+                    matching_hashes_malicious = set(hashes_malicious)
+                    matching_hashes_benign_header = set(byte_sequences_hashes_benign['ByteHeader'][header_sequence])
+                    matching_hashes_benign_footer = set(byte_sequences_hashes_benign['ByteFooter'][footer_sequence])
+
+                    # Only report if there are matches in both header and footer for the same sequence
+                    if matching_hashes_malicious & matching_hashes_benign_header and matching_hashes_malicious & matching_hashes_benign_footer:
+                        logging.info(f"1ByteHeader - Byte Sequence: {header_sequence} - Match ({len(matching_hashes_malicious)} malicious, {len(matching_hashes_benign_header)} benign matches) "
+                                     f"- 1ByteFooter - Byte Sequence: {footer_sequence} - Match ({len(matching_hashes_malicious)} malicious, {len(matching_hashes_benign_footer)} benign matches)")
+
+# Main execution
 if __name__ == "__main__":
     byte_sequences_hashes_malicious = read_byte_sequences_with_hashes(MALICIOUS_INPUT_CSV)
     byte_sequences_hashes_benign = read_byte_sequences_with_hashes(BENIGN_INPUT_CSV)
 
     if byte_sequences_hashes_malicious and byte_sequences_hashes_benign:
-        compare_byte_sequences_and_print_hashes(byte_sequences_hashes_malicious, byte_sequences_hashes_benign,
-                                                READ_MODE)
+        compare_byte_sequences_and_print_hashes(byte_sequences_hashes_malicious, byte_sequences_hashes_benign, READ_MODE)
+        report_combined_header_footer_matches(byte_sequences_hashes_malicious, byte_sequences_hashes_benign)
     else:
         logging.error("Failed to read one or both CSV files. Exiting.")
