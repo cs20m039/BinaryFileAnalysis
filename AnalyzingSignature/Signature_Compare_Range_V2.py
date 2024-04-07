@@ -7,16 +7,16 @@ READ_MODE = 'both'  # Can be 'header', 'footer', or 'both'
 MALICIOUS_INPUT_CSV = f"../DataExchange/datafile_signature_malicious_{READ_MODE}_1-400.csv"
 BENIGN_INPUT_CSV = f"../DataExchange/datafile_signature_benign_{READ_MODE}_1-400.csv"
 
-
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 LOG_FILE_PATH = f'../Logfiles/log_bytes_compare_{timestamp}.log'
 
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.DEBUG,  # Changed to DEBUG for verbosity
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     handlers=[
                         logging.FileHandler(LOG_FILE_PATH, mode='w'),
                         logging.StreamHandler()
                     ])
+
 
 def read_byte_sequences_with_hashes(csv_path):
     logging.debug(f"Attempting to open CSV file: {csv_path}")
@@ -40,26 +40,26 @@ def read_byte_sequences_with_hashes(csv_path):
     return byte_sequences_hashes
 
 
-def compare_byte_sequences_and_print_hashes(byte_sequences_hashes_malicious, byte_sequences_hashes_benign):
-    logging.info("Starting comparison of byte sequences in both header and footer mode...")
+def compare_byte_sequences_and_print_hashes(byte_sequences_hashes_malicious, byte_sequences_hashes_benign, read_mode):
+    logging.info(f"Starting comparison of byte sequences in {read_mode} mode...")
     for header in byte_sequences_hashes_malicious:
+        match_found = False
         for sequence, hashes_malicious in byte_sequences_hashes_malicious[header].items():
-            # Check for matches in both malicious and benign datasets for both header and footer
             if sequence in byte_sequences_hashes_benign.get(header, {}):
+                match_found = True
                 hashes_benign = byte_sequences_hashes_benign[header][sequence]
-                # Assuming that 'header' and 'footer' distinctions are handled within your dataset structure
-                # You might need to adapt this logic to fit your data structure
-                # For simplicity, this code assumes the presence of both header and footer matches to log info
                 logging.info(
                     f"{header} - Byte Sequence: {sequence} - Match ({len(hashes_malicious)} malicious, {len(hashes_benign)} benign matches)")
-            else:
-                logging.debug(f"No full matches found for {header}.")
+        if not match_found:
+            logging.debug(f"No matches found for {header} in {read_mode} mode.")
+
 
 if __name__ == "__main__":
     byte_sequences_hashes_malicious = read_byte_sequences_with_hashes(MALICIOUS_INPUT_CSV)
     byte_sequences_hashes_benign = read_byte_sequences_with_hashes(BENIGN_INPUT_CSV)
 
     if byte_sequences_hashes_malicious and byte_sequences_hashes_benign:
-        compare_byte_sequences_and_print_hashes(byte_sequences_hashes_malicious, byte_sequences_hashes_benign)
+        compare_byte_sequences_and_print_hashes(byte_sequences_hashes_malicious, byte_sequences_hashes_benign,
+                                                READ_MODE)
     else:
         logging.error("Failed to read one or both CSV files. Exiting.")

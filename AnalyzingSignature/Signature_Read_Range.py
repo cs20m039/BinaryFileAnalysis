@@ -3,22 +3,20 @@ import datetime
 import logging
 import os
 
-# Setup basic logging and timestamp
+INTERVAL_START = 1
+INTERVAL_END = 400
+READ_MODE = 'footer'
+READ_LENGTH = INTERVAL_END
+MALICIOUS_DIRECTORY = "/home/cs20m039/thesis/dataset1/malicious"
+BENIGN_DIRECTORY = "/home/cs20m039/thesis/dataset1/benign"
+OUTPUT_CSV_PREFIX = "../DataExchange/datafile_signature_"
+
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 LOG_FILE_PATH = f'../Logfiles/log_signature_{timestamp}.txt'
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     filename=LOG_FILE_PATH,
                     filemode='w')
-
-# Configuration
-INTERVAL_START = 1
-INTERVAL_END = 400  # Adjusted according to the setup configuration
-READ_MODE = 'footer'  # Options: 'header', 'footer', 'both'
-READ_LENGTH = INTERVAL_END  # Adjusted according to the setup configuration
-MALICIOUS_DIRECTORY = "/home/cs20m039/thesis/dataset1/malicious"
-BENIGN_DIRECTORY = "/home/cs20m039/thesis/dataset1/benign"
-OUTPUT_CSV_PREFIX = "../DataExchange/datafile_signature_"
 
 
 def read_bytes_of_file(file_path, read_mode='both', interval_start=1, interval_end=200, read_length=200):
@@ -51,12 +49,13 @@ def read_bytes_of_file(file_path, read_mode='both', interval_start=1, interval_e
         return {}
 
 
-def analyze_files_recursive(directory_path, output_prefix, file_type, read_mode='both', interval_start=1, interval_end=200):
+def analyze_files_recursive(directory_path, output_prefix, file_type, read_mode='both', interval_start=1,
+                            interval_end=200):
     csv_path = f"{output_prefix}{file_type}_{read_mode}_{interval_start}-{interval_end}.csv"
     file_count = 0
     headers = ['FileHash'] + [f'{i}ByteHeader' for i in range(interval_start, interval_end + 1)] + \
               [f'{i}ByteFooter' for i in range(interval_start, interval_end + 1)] if read_mode == 'both' else \
-              ['FileHash'] + [f'{i}Byte' for i in range(interval_start, interval_end + 1)]
+        ['FileHash'] + [f'{i}Byte' for i in range(interval_start, interval_end + 1)]
 
     with open(csv_path, 'w', newline='') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=headers)
@@ -74,6 +73,8 @@ def analyze_files_recursive(directory_path, output_prefix, file_type, read_mode=
 
     logging.info(f"Total files analyzed in {file_type} directory: {file_count}")
 
+
 if __name__ == "__main__":
-    analyze_files_recursive(MALICIOUS_DIRECTORY, OUTPUT_CSV_PREFIX, 'malicious', READ_MODE, INTERVAL_START, INTERVAL_END)
+    analyze_files_recursive(MALICIOUS_DIRECTORY, OUTPUT_CSV_PREFIX, 'malicious', READ_MODE, INTERVAL_START,
+                            INTERVAL_END)
     analyze_files_recursive(BENIGN_DIRECTORY, OUTPUT_CSV_PREFIX, 'benign', READ_MODE, INTERVAL_START, INTERVAL_END)

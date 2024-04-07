@@ -7,15 +7,14 @@ MALICIOUS_INPUT_CSV = f"../DataExchange/datafile_entropy_malicious_{READ_MODE}_1
 BENIGN_INPUT_CSV = f"../DataExchange/datafile_entropy_benign_{READ_MODE}_1-500.csv"
 
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
 LOG_FILE_PATH = f'../Logfiles/log_entropy_compare_{timestamp}.log'
-
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     handlers=[
                         logging.FileHandler(LOG_FILE_PATH, mode='w'),
                         logging.StreamHandler()
                     ])
+
 
 def read_entropy_values_with_hashes(csv_path):
     logging.debug(f"Opening CSV file: {csv_path}")
@@ -43,23 +42,19 @@ def compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_ha
     logging.info(f"Starting comparison of entropy values in {read_mode} mode...")
 
     if read_mode == 'both':
-        # Logic specific to matching both header and footer.
         for header in entropy_hashes_malicious:
             if 'Header' in header:
                 corresponding_footer = header.replace('Header', 'Footer')
                 for value_malicious, hashes_malicious in entropy_hashes_malicious[header].items():
                     if value_malicious in entropy_hashes_benign[
                         header] and value_malicious in entropy_hashes_benign.get(corresponding_footer, {}):
-                        # Extracting and logging detailed information for both header and footer
                         hashes_benign_header = entropy_hashes_benign[header][value_malicious]
                         hashes_benign_footer = entropy_hashes_benign[corresponding_footer][value_malicious]
                         logging.info(
                             f"Match found - {header}: {value_malicious} ({len(hashes_malicious)} malicious, {len(hashes_benign_header)} benign matches), "
                             f"{corresponding_footer}: {value_malicious} ({len(hashes_malicious)} malicious, {len(hashes_benign_footer)} benign matches)")
     else:
-        # Handle "header" or "footer" modes.
         for header in entropy_hashes_malicious:
-            # Ensure the header matches the mode we are analyzing (Header or Footer).
             if (read_mode.capitalize() in header) or (read_mode == 'header' and 'Header' in header) or (
                     read_mode == 'footer' and 'Footer' in header):
                 for value_malicious, hashes_malicious in entropy_hashes_malicious[header].items():
