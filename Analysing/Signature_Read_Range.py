@@ -4,11 +4,11 @@ import logging
 import os
 
 INTERVAL_START = 1
-INTERVAL_END = 200
+INTERVAL_END = 10
 READ_MODE = 'both'
 READ_LENGTH = INTERVAL_END
-MALICIOUS_DIRECTORY = "/home/cs20m039/thesis/dataset1/malicious"
-BENIGN_DIRECTORY = "/home/cs20m039/thesis/dataset1/benign"
+MALICIOUS_DIRECTORY = "/home/cs20m039/thesis/dataset0/malicious"
+BENIGN_DIRECTORY = "/home/cs20m039/thesis/dataset0/benign"
 OUTPUT_CSV_PREFIX = "../DataExchange/datafile_signature_"
 
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO,
                     filemode='w')
 
 
-def read_bytes_of_file(file_path, read_mode='both', interval_start=1, interval_end=200, read_length=200):
+def read_bytes_of_file(file_path, read_mode=READ_MODE, interval_start=INTERVAL_START, interval_end=INTERVAL_END, read_length=INTERVAL_END):
     try:
         with open(file_path, 'rb') as file:
             file_size = os.path.getsize(file_path)

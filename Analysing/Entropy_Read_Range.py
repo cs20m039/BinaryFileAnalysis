@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 
 START_BYTE = 1
-END_BYTE = 400
+END_BYTE = 500
 READ_MODE = ('both')  # Can be 'header', 'footer', or 'both'
 MALICIOUS_FILE = "/home/cs20m039/thesis/dataset1/malicious"
 BENIGN_FILE = "/home/cs20m039/thesis/dataset1/benign"

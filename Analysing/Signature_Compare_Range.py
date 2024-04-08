@@ -1,89 +1,67 @@
 import csv
+from collections import defaultdict
 import os
 import re
-from collections import defaultdict
-
-#both-mode, header-mode, footer-mode
-mode = 'both'
 
 print("Current Working Directory:", os.getcwd())
 
+# Function to read CSV content into a dictionary
 def read_csv(filename):
     with open(filename, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         return list(reader)
 
-malicious_csv = read_csv('../DataExchange/datafile_entropy_malicious_both_1-10.csv')
-benign_csv = read_csv('../DataExchange/datafile_entropy_benign_both_1-10.csv')
+malicious_csv = read_csv('../DataExchange/datafile_signature_malicious_both_1-10.csv')
+benign_csv = read_csv('../DataExchange/datafile_signature_benign_both_1-10.csv')
 
-def find_max_index(csv_data, key_prefix):
+# Function to find the highest index among header/footer keys in the given CSV data
+def find_max_index(csv_data):
     max_index = 0
-    pattern = re.compile(rf'{key_prefix}(\d+)')
+    pattern = re.compile(r'(Header|Footer)(\d+)')
     for row in csv_data:
         for key in row.keys():
             match = pattern.match(key)
             if match:
-                index = int(match.group(1))
+                index = int(match.group(2))
                 max_index = max(max_index, index)
     return max_index
 
-header_keys = []
-footer_keys = []
-if mode in ['header', 'both']:
-    max_header_index = max(find_max_index(malicious_csv, 'Header'), find_max_index(benign_csv, 'Header'))
-    header_keys = [f'Header{i}' for i in range(1, max_header_index + 1)]
-if mode in ['footer', 'both']:
-    max_footer_index = max(find_max_index(malicious_csv, 'Footer'), find_max_index(benign_csv, 'Footer'))
-    footer_keys = [f'Footer{i}' for i in range(1, max_footer_index + 1)]
+# Determine the range of headers and footers from the files
+max_header_footer_index = max(find_max_index(malicious_csv), find_max_index(benign_csv))
 
+# Generate header and footer keys based on the determined range
+header_keys = [f'Header{i}' for i in range(1, max_header_footer_index + 1)]
+footer_keys = [f'Footer{i}' for i in range(1, max_header_footer_index + 1)]
+
+# The rest of your code remains unchanged...
+# Prepare to aggregate matches
 matches = defaultdict(lambda: {"malicious": 0, "benign": 0, "files": {"malicious": [], "benign": []}})
 
-# Logic to compare headers and footers as per the chosen mode
-if mode in ['header', 'footer']:
-    keys_to_compare = header_keys if mode == 'headere' else footer_keys
-    for key in keys_to_compare:
-        header_footer_values = defaultdict(lambda: {"malicious": 0, "benign": 0, "files": {"malicious": [], "benign": []}})
-        for row in malicious_csv:
-            value = row[key]
-            header_footer_values[value]["malicious"] += 1
-            header_footer_values[value]["files"]["malicious"].append(row["FileName"])
-        for row in benign_csv:
-            value = row[key]
-            if value in header_footer_values:
-                header_footer_values[value]["benign"] += 1
-                header_footer_values[value]["files"]["benign"].append(row["FileName"])
+# Iterate through each header and corresponding footer
+for index, (header_key, footer_key) in enumerate(zip(header_keys, footer_keys), start=1):
+    # Aggregate matches for this header-footer pair
+    header_footer_values = defaultdict(lambda: {"malicious": 0, "benign": 0, "files": {"malicious": [], "benign": []}})
 
-        for value_key, value_info in header_footer_values.items():
-            if value_info["malicious"] > 0 and value_info["benign"] > 0:
-                composite_key = (key, value_key)
-                matches[composite_key] = value_info
+    # Count occurrences in malicious CSV and track filenames
+    for row in malicious_csv:
+        value = (row[header_key], row[footer_key])
+        header_footer_values[value]["malicious"] += 1
+        header_footer_values[value]["files"]["malicious"].append(row["FileName"])
 
-elif mode == 'both':
-    # Compare both headers and footers together for each row
-    for row_m in malicious_csv:
-        for row_b in benign_csv:
-            match_found = True
-            for h_key, f_key in zip(header_keys, footer_keys):
-                if row_m[h_key] != row_b[h_key] or row_m[f_key] != row_b[f_key]:
-                    match_found = False
-                    break
-            if match_found:
-                composite_key = tuple([(h_key, row_m[h_key], f_key, row_m[f_key]) for h_key, f_key in zip(header_keys, footer_keys)])
-                matches[composite_key]["malicious"] += 1
-                matches[composite_key]["files"]["malicious"].append(row_m["FileName"])
-                matches[composite_key]["benign"] += 1
-                matches[composite_key]["files"]["benign"].append(row_b["FileName"])
+    # Count occurrences in benign CSV and track filenames
+    for row in benign_csv:
+        value = (row[header_key], row[footer_key])
+        if value in header_footer_values:
+            header_footer_values[value]["benign"] += 1
+            header_footer_values[value]["files"]["benign"].append(row["FileName"])
 
-# Reporting Matches
-if mode in ['header', 'footer']:
-    for (column_key, match_value), info in matches.items():
-        mode_key = "Header" if mode == 'header' else "Footer"
-        print(f"MATCH: {mode_key} {column_key.split(mode_key)[-1]} Value = '{match_value}', "
-              f"Occurrences in Malicious = {info['malicious']} ({', '.join(set(info['files']['malicious']))}), "
-              f"Occurrences in Benign = {info['benign']} ({', '.join(set(info['files']['benign']))})")
-elif mode == 'both':
-    for composite_keys, info in matches.items():
-        for h_key, h_value, f_key, f_value in composite_keys:
-            print(f"MATCH: {h_key} Value = '{h_value}', {f_key} Value = '{f_value}', "
-                  f"Occurrences in Malicious = {info['malicious']} ({', '.join(set(info['files']['malicious']))}), "
-                  f"Occurrences in Benign = {info['benign']} ({', '.join(set(info['files']['benign']))})")
+    # Aggregate matches with counts for both files and accumulate filenames
+    for key, value in header_footer_values.items():
+        if value["malicious"] > 0 and value["benign"] > 0:  # Found in both
+            matches[(header_key, footer_key) + key] = value
+
+# Print aggregated matches with occurrences and filenames
+for (header_key, footer_key, header_value, footer_value), info in matches.items():
+    print(f"MATCH: {header_key} Value = '{header_value}', {footer_key} Value = '{footer_value}', "
+          f"Occurrences in Malicious = {info['malicious']} ({', '.join(info['files']['malicious'])}), "
+          f"Occurrences in Benign = {info['benign']} ({', '.join(info['files']['benign'])})")
