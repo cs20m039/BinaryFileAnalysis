@@ -1,53 +1,34 @@
 import csv
-import datetime
-import logging
 
-# Constants for file paths
-READ_MODE = 'both'  # Options: 'header', 'footer', 'both'
-MALICIOUS_INPUT_CSV = f"../DataExchange/datafile_signature_malicious_{READ_MODE}_1-10.csv"
-BENIGN_INPUT_CSV = f"../DataExchange/datafile_signature_benign_{READ_MODE}_1-10.csv"
-timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-LOG_FILE_PATH = f'../Logfiles/log_bytes_compare_{timestamp}.log'
 
-# Setup logging
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s - %(levelname)s - %(message)s',
-                    handlers=[
-                        logging.FileHandler(LOG_FILE_PATH, mode='w'),
-                        logging.StreamHandler()
-                    ])
+# Function to read CSV content into a dictionary
+def read_csv(filename):
+    with open(filename, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        return list(reader)
 
-def read_byte_sequences_with_hashes(csv_path):
-    """Read byte sequences and their hashes from a CSV file."""
-    try:
-        with open(csv_path, mode='r', encoding='utf-8') as csvfile:
-            reader = csv.reader(csvfile)
-            headers = next(reader)[1:]  # Skip 'FileHash'
-            byte_seq_hashes = {header: {} for header in headers}
-            for row in reader:
-                file_hash, *sequences = row
-                for header, value in zip(headers, sequences):
-                    if value:
-                        byte_seq_hashes[header].setdefault(value, []).append(file_hash)
-        logging.debug(f"Successfully processed {csv_path}")
-        return byte_seq_hashes
-    except Exception as e:
-        logging.error(f"Failed processing {csv_path}: {e}")
-        return {}
 
-def compare_byte_sequences_and_log(byte_seq_hashes_mal, byte_seq_hashes_ben):
-    """Compare byte sequences between malicious and benign datasets and log findings."""
-    logging.info("Starting byte sequence comparison...")
-    for header in byte_seq_hashes_mal:
-        for seq, mal_hashes in byte_seq_hashes_mal[header].items():
-            ben_hashes = byte_seq_hashes_ben.get(header, {}).get(seq, [])
-            if ben_hashes:
-                logging.info(f"{header} - Byte Sequence: {seq} - Matches found ({len(mal_hashes)} malicious, {len(ben_hashes)} benign)")
+# Load both CSV files
+malicious_csv = read_csv('../DataExchange/datafile_signature_malicious_both_1-10.csv')
+benign_csv = read_csv('../DataExchange/datafile_signature_benign_both_1-10.csv')
 
-if __name__ == "__main__":
-    mal_hashes = read_byte_sequences_with_hashes(MALICIOUS_INPUT_CSV)
-    ben_hashes = read_byte_sequences_with_hashes(BENIGN_INPUT_CSV)
-    if mal_hashes and ben_hashes:
-        compare_byte_sequences_and_log(mal_hashes, ben_hashes)
-    else:
-        logging.error("Failed to read one or both CSV files. Exiting.")
+# Since headers are now the same, we directly use them for comparison
+header_keys = [f'Header{i}' for i in range(1, 11)]  # Generate header keys
+footer_keys = [f'Footer{i}' for i in range(1, 11)]  # Generate footer keys
+
+# Iterate through each header and corresponding footer
+for header_key, footer_key in zip(header_keys, footer_keys):
+    # Iterate through each row of the malicious CSV
+    for row_malicious in malicious_csv:
+        # Find matching header value in benign CSV
+        matching_rows_benign = [row_benign for row_benign in benign_csv if
+                                row_benign[header_key] == row_malicious[header_key]]
+
+        # For each match found, check the footer value
+        for match in matching_rows_benign:
+            if match[footer_key] == row_malicious[footer_key]:
+                #print(f"MATCH for {header_key} and {footer_key}")
+                print(f"MATCH for {header_key} and {footer_key}: Header Value = '{row_malicious[header_key]}', Footer Value = '{row_malicious[footer_key]}'")
+                break  # Proceed to next column after first match
+
+# Note: Adjust the file names 'malicious-csv-structure.csv' and 'benign-csv-structure.csv' as needed

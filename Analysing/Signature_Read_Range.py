@@ -4,11 +4,11 @@ import logging
 import os
 
 INTERVAL_START = 1
-INTERVAL_END = 10
+INTERVAL_END = 200
 READ_MODE = 'both'
 READ_LENGTH = INTERVAL_END
-MALICIOUS_DIRECTORY = "/home/cs20m039/thesis/dataset0/malicious"
-BENIGN_DIRECTORY = "/home/cs20m039/thesis/dataset0/benign"
+MALICIOUS_DIRECTORY = "/home/cs20m039/thesis/dataset1/malicious"
+BENIGN_DIRECTORY = "/home/cs20m039/thesis/dataset1/benign"
 OUTPUT_CSV_PREFIX = "../DataExchange/datafile_signature_"
 
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -27,20 +27,20 @@ def read_bytes_of_file(file_path, read_mode='both', interval_start=1, interval_e
 
             if read_mode == 'header':
                 bytes_read = file.read(read_length)
-                bytes_data.update({f'{length}Byte': bytes_read[:length].hex() for length in
+                bytes_data.update({f'Header{length}': bytes_read[:length].hex() for length in
                                    range(interval_start, min(len(bytes_read) + 1, interval_end + 1))})
             elif read_mode == 'footer':
                 file.seek(max(file_size - read_length, 0))
                 bytes_read = file.read(read_length)
-                bytes_data.update({f'{length}Byte': bytes_read[-length:].hex() for length in
+                bytes_data.update({f'Footer{length}': bytes_read[-length:].hex() for length in
                                    range(interval_start, min(len(bytes_read), interval_end) + 1)})
             elif read_mode == 'both':
                 bytes_read_header = file.read(interval_end)
                 file.seek(max(file_size - interval_end, 0))
                 bytes_read_footer = file.read(interval_end)
-                bytes_data.update({f'{length}ByteHeader': bytes_read_header[:length].hex() for length in
+                bytes_data.update({f'Header{length}': bytes_read_header[:length].hex() for length in
                                    range(interval_start, min(len(bytes_read_header) + 1, interval_end + 1))})
-                bytes_data.update({f'{length}ByteFooter': bytes_read_footer[-length:].hex() for length in
+                bytes_data.update({f'Footer{length}': bytes_read_footer[-length:].hex() for length in
                                    range(interval_start, min(len(bytes_read_footer), interval_end) + 1)})
 
             return bytes_data
@@ -49,13 +49,13 @@ def read_bytes_of_file(file_path, read_mode='both', interval_start=1, interval_e
         return {}
 
 
-def analyze_files_recursive(directory_path, output_prefix, file_type, read_mode='both', interval_start=1,
-                            interval_end=200):
+def analyze_files_recursive(directory_path, output_prefix, file_type, read_mode=READ_MODE, interval_start=INTERVAL_START,
+                            interval_end=INTERVAL_END):
     csv_path = f"{output_prefix}{file_type}_{read_mode}_{interval_start}-{interval_end}.csv"
     file_count = 0
-    headers = ['FileHash'] + [f'{i}ByteHeader' for i in range(interval_start, interval_end + 1)] + \
-              [f'{i}ByteFooter' for i in range(interval_start, interval_end + 1)] if read_mode == 'both' else \
-        ['FileHash'] + [f'{i}Byte' for i in range(interval_start, interval_end + 1)]
+    headers = ['FileName'] + [f'Header{i}' for i in range(interval_start, interval_end + 1)] + \
+              [f'Footer{i}' for i in range(interval_start, interval_end + 1)] if read_mode == 'both' else \
+        ['FileName'] + [f'Byt{i}e' for i in range(interval_start, interval_end + 1)]
 
     with open(csv_path, 'w', newline='') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=headers)
@@ -67,7 +67,7 @@ def analyze_files_recursive(directory_path, output_prefix, file_type, read_mode=
                 full_path = os.path.join(dirpath, filename)
                 bytes_data = read_bytes_of_file(full_path, read_mode, interval_start, interval_end, READ_LENGTH)
                 if bytes_data:
-                    bytes_data['FileHash'] = os.path.splitext(filename)[0]
+                    bytes_data['FileName'] = os.path.splitext(filename)[0]
                     writer.writerow(bytes_data)
                     file_count += 1
 

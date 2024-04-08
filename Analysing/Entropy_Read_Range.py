@@ -5,10 +5,10 @@ import os
 from datetime import datetime
 
 START_BYTE = 1
-END_BYTE = 10
+END_BYTE = 400
 READ_MODE = ('both')  # Can be 'header', 'footer', or 'both'
-MALICIOUS_FILE = "/home/cs20m039/thesis/dataset0/malicious"
-BENIGN_FILE = "/home/cs20m039/thesis/dataset0/benign"
+MALICIOUS_FILE = "/home/cs20m039/thesis/dataset1/malicious"
+BENIGN_FILE = "/home/cs20m039/thesis/dataset1/benign"
 OUTPUT_CSV_PREFIX = "../DataExchange/datafile_entropy_"
 
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -47,10 +47,11 @@ def calculate_and_write_entropy(directory, output_csv_prefix, start_byte, end_by
 
     with open(output_csv_path, 'w', newline='', encoding='utf-8') as csvfile:
         csvwriter = csv.writer(csvfile)
-        headers = ['Hash'] + [f'{read_mode.capitalize()}_Entropy_{start_byte}-{i}' for i in
+        headers = ['FileName'] + [f'{read_mode.capitalize()}_Entropy_{start_byte}-{i}' for i in
                               range(start_byte, end_byte + 1)] if read_mode != 'both' else \
-            ['Hash'] + [f'Header_Entropy_{start_byte}-{i}' for i in range(start_byte, end_byte + 1)] + \
-            [f'Footer_Entropy_{start_byte}-{i}' for i in range(start_byte, end_byte + 1)]
+            ['FileName'] + [f'Header{i}' for i in range(start_byte, end_byte + 1)] + \
+            [f'Footer{i}' for i in range(start_byte, end_byte + 1)]
+
         csvwriter.writerow(headers)
 
         for root, _, files in os.walk(directory):
