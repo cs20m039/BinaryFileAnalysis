@@ -4,11 +4,11 @@ import logging
 import os
 
 INTERVAL_START = 1
-INTERVAL_END = 400
+INTERVAL_END = 10
 READ_MODE = 'both'
 READ_LENGTH = INTERVAL_END
-MALICIOUS_DIRECTORY = "/home/cs20m039/thesis/dataset1/malicious"
-BENIGN_DIRECTORY = "/home/cs20m039/thesis/dataset1/benign"
+MALICIOUS_DIRECTORY = "/home/cs20m039/thesis/dataset0/malicious"
+BENIGN_DIRECTORY = "/home/cs20m039/thesis/dataset0/benign"
 OUTPUT_CSV_PREFIX = "../DataExchange/datafile_signature_"
 
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

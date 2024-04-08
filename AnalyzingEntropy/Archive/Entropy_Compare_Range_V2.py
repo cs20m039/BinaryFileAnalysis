@@ -2,7 +2,7 @@ import csv
 import datetime
 import logging
 
-READ_MODE = 'footer'  # Adjust based on the mode used for generating CSVs
+READ_MODE = 'both'  # Adjust based on the mode used for generating CSVs
 MALICIOUS_INPUT_CSV = f"../DataExchange/datafile_entropy_malicious_{READ_MODE}_1-10.csv"
 BENIGN_INPUT_CSV = f"../DataExchange/datafile_entropy_benign_{READ_MODE}_1-10.csv"
 
@@ -41,35 +41,28 @@ def read_entropy_values_with_hashes(csv_path):
 def compare_entropy_values_and_print_hashes(entropy_hashes_malicious, entropy_hashes_benign, read_mode):
     logging.info(f"Starting comparison of entropy values in {read_mode} mode...")
 
-    header_matches = {}
-    footer_matches = {}
+    if read_mode == 'both':
+        for header in entropy_hashes_malicious:
+            if 'Header' in header:
+                corresponding_footer = header.replace('Header', 'Footer')
+                for value_malicious, hashes_malicious in entropy_hashes_malicious[header].items():
+                    # Check both the header and footer values in benign to match with malicious header value
+                    if value_malicious in entropy_hashes_benign[header] and any(
+                            value for value in entropy_hashes_benign.get(corresponding_footer, {}).keys()):
+                        hashes_benign_header = entropy_hashes_benign[header].get(value_malicious, [])
+                        # This loop iterates over all footer values (since we're not assuming they match header values)
+                        for value_footer, hashes_benign_footer in entropy_hashes_benign.get(corresponding_footer, {}).items():
+                            logging.info(
+                                f"Match found - {header}: {value_malicious} ({len(hashes_malicious)} malicious, {len(hashes_benign_header)} benign header matches), "
+                                f"{corresponding_footer}: real value {value_footer} ({len(hashes_malicious)} malicious, {len(hashes_benign_footer)} benign footer matches)")
+    else:
+        for header in entropy_hashes_malicious:
+            if (read_mode.capitalize() in header) or (read_mode == 'header' and 'Header' in header) or (
+                    read_mode == 'footer' and 'Footer' in header):
+                for value_malicious, hashes_malicious in entropy_hashes_malicious[header].items():
+                    if value_malicious in entropy_hashes_benign[header]:
+                        logging.info(f"{header} - Entropy Value: {value_malicious} - Match")
 
-    # Dictionary to store header matches
-    for header_malicious, footer_malicious in entropy_hashes_malicious.items():
-        if header_malicious.startswith("Header_Entropy"):
-            corresponding_footer = header_malicious.replace("Header", "Footer")
-            if corresponding_footer in entropy_hashes_benign:
-                for entropy_key, value_malicious in footer_malicious.items():
-                    if entropy_key in entropy_hashes_benign[corresponding_footer]:
-                        value_benign = entropy_hashes_benign[corresponding_footer][entropy_key]
-                        header_matches[header_malicious] = entropy_key
-                        footer_matches[corresponding_footer] = entropy_key
-                        logging.info(
-                            f"{header_malicious} - Entropy Value: {entropy_key} - Match"
-                        )
-
-    # Output header matches
-    for header, entropy_value in header_matches.items():
-        logging.info(
-            f"{header} - Entropy Value: {entropy_value} - Match"
-        )
-
-    # Output footer matches
-    logging.info("Starting comparison of entropy values in footer mode...")
-    for footer, entropy_value in footer_matches.items():
-        logging.info(
-            f"{footer} - Entropy Value: {entropy_value} - Match"
-        )
 
 
 if __name__ == "__main__":

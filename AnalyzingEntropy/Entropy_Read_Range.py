@@ -5,10 +5,10 @@ import os
 from datetime import datetime
 
 START_BYTE = 1
-END_BYTE = 500
+END_BYTE = 10
 READ_MODE = ('both')  # Can be 'header', 'footer', or 'both'
-MALICIOUS_FILE = "/home/cs20m039/thesis/dataset1/malicious"
-BENIGN_FILE = "/home/cs20m039/thesis/dataset1/benign"
+MALICIOUS_FILE = "/home/cs20m039/thesis/dataset0/malicious"
+BENIGN_FILE = "/home/cs20m039/thesis/dataset0/benign"
 OUTPUT_CSV_PREFIX = "../DataExchange/datafile_entropy_"
 
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
