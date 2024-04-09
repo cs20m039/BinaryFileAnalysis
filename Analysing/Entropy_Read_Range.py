@@ -6,12 +6,12 @@ import datetime
 
 # Constants
 START_BYTE = 1
-END_BYTE = 50
+END_BYTE = 600
 READ_MODE = 'both'  # Can be 'header', 'footer', or 'both'
-MALICIOUS_FILE_PATH = "/home/cs20m039/thesis/dataset0/malicious"
-BENIGN_FILE_PATH = "/home/cs20m039/thesis/dataset0/benign"
+MALICIOUS_FILE_PATH = "/home/cs20m039/thesis/dataset1/malicious"
+BENIGN_FILE_PATH = "/home/cs20m039/thesis/dataset1/benign"
 OUTPUT_CSV_PREFIX = "../DataExchange/datafile_entropy_"
-TIMESTAMP = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+TIMESTAMP = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 LOG_FILE_PATH = f'../Logfiles/log_entropy_read_{TIMESTAMP}.log'
 
 # Configure logging
