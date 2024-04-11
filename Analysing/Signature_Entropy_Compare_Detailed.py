@@ -11,9 +11,9 @@ def read_csv(filename):
         return list(reader)
 
 
-malicious_csv = read_csv('../DataExchange/datafile_entropy_malicious_both_1-800.csv')
-benign_csv = read_csv('../DataExchange/datafile_entropy_benign_both_1-800.csv')
-mode = 'header'   # Can be 'header', 'footer', or 'both'
+malicious_csv = read_csv('../DataExchange/datafile_signature_malicious_both_1-10.csv')
+benign_csv = read_csv('../DataExchange/datafile_signature_benign_both_1-10.csv')
+mode = 'both'   # Can be 'header', 'footer', or 'both'
 
 TIMESTAMP = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 LOG_FILE_PATH = f'../Logfiles/log_entropy_read_{TIMESTAMP}.log'
