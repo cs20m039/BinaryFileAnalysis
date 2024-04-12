@@ -23,12 +23,6 @@ total_benign = len(benign_csv)
 TIMESTAMP = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 LOG_FILE_PATH = f'../Logfiles/log_compare_signature_read_{TIMESTAMP}.log'
 
-#logging.basicConfig(level=logging.INFO,
-#                    format='%(asctime)s - %(levelname)s - %(message)s',
-#                    handlers=[
-#                        logging.FileHandler(LOG_FILE_PATH, mode='w'),
-#                        logging.StreamHandler()
-#                    ])
 logging.basicConfig(level=logging.INFO,
                     format='%(message)s',  # Output only the log message
                     handlers=[
