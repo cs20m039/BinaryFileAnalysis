@@ -19,8 +19,8 @@ log_file_name = f'entropy_value_analyzer_{datetime_str}.log'
 entropy_malicious_file = "Patterns/datafile_entropy_malicious_both_1-600.csv"
 entropy_benign_file = "Patterns/datafile_entropy_benign_both_1-600.csv"
 
-signature_lengths = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
-scan_mode = 'headers'  # Options: 'headers' or 'headers_footers'
+signature_lengths = [10, 50, 150, 200, 250, 300, 350, 400]
+scan_mode = 'headers_footers'  # Options: 'headers' or 'headers_footers'
 
 if platform.system() == 'Windows':
     username = os.environ.get('USERNAME')
@@ -67,68 +67,65 @@ def read_entropy_values(csv_file, bytes_to_read, mode, malware_flag):
 
 
 
-def calculate_file_entropy(file_path, bytes_to_read):
-    """Calculate the entropy of the first `bytes_to_read` bytes of each scanned file, if it's a regular file and at least 500 bytes."""
+def calculate_file_entropy(file_path, bytes_to_read, footer=False):
+    """Calculate entropy for either header or footer of the file."""
     try:
-        if not os.path.isfile(file_path):  # Check if the path is a regular file
-            logger.debug(f"Skipping non-regular file: {file_path}")
-            return None
-
-        # Check if the file is at least 500 bytes
-        if os.path.getsize(file_path) < 500:
-            logger.debug(f"Skipping file due to size < 500 bytes: {file_path}")
-            return None
-
-        with open(file_path, 'rb') as f:
-            byte_arr = [0] * 256
-            file_bytes = f.read(bytes_to_read)
+        with open(file_path, 'rb') as file:
+            if footer:
+                file.seek(-bytes_to_read, os.SEEK_END)  # Move to the end for footer
+            file_bytes = file.read(bytes_to_read)
             if not file_bytes:
-                return 0
+                return None
+            byte_arr = [0] * 256
             for byte in file_bytes:
                 byte_arr[byte] += 1
-            entropy = -sum(f / len(file_bytes) * math.log(f / len(file_bytes), 2) for f in byte_arr if f > 0)
+            entropy = -sum((count / len(file_bytes)) * math.log(count / len(file_bytes), 2) for count in byte_arr if count > 0)
             return entropy
     except Exception as e:
         logger.error(f"Error calculating entropy for {file_path}: {e}")
         return None
 
-
 def compare_entropy(directory, patterns):
     matches = {"benign": [], "malware": [], "unknown": []}
     files_scanned = 0
     files_processed = 0
-    for root, dirs, files in os.walk(directory, followlinks=False):
-        if any(os.path.abspath(root).startswith(ex_dir) for ex_dir in exclusion_directories):
-            logger.debug(f"Skipping directory: {root}")
-            continue
 
+    for root, dirs, files in os.walk(directory, followlinks=False):
         for file in files:
             file_path = os.path.join(root, file)
             files_scanned += 1
             if os.path.getsize(file_path) < 500:
-                continue  # Skip small files
+                continue  # Skip files smaller than 500 bytes
 
-            files_processed += 1
-            entropy = calculate_file_entropy(file_path, bytes_to_read)
-            if entropy is None:
-                continue
+            header_entropy = calculate_file_entropy(file_path, bytes_to_read)
+            footer_entropy = calculate_file_entropy(file_path, bytes_to_read, footer=True) if scan_mode == 'headers_footers' else None
+            file_processed = False
 
-            match_found = False
-            for file_hash, header_entropy, footer_entropy, flag in patterns:
-                # Check if it's a header or both and compare entropy
-                target_entropy = header_entropy if scan_mode == 'headers' else (header_entropy + footer_entropy) / 2
-                if abs(entropy - target_entropy) < 0.000001: #3.443017689988497
+            for file_hash, target_header_entropy, target_footer_entropy, flag in patterns:
+                header_match = abs(header_entropy - target_header_entropy) < 0.000001 if header_entropy is not None else False
+                footer_match = abs(footer_entropy - target_footer_entropy) < 0.000001 if footer_entropy is not None else False
+
+                # Ensure both header and footer match when in 'headers_footers' mode
+                if scan_mode == 'headers_footers':
+                    match = header_match and footer_match
+                else:
+                    match = header_match  # In 'headers' mode, only header needs to match
+
+                if match:
                     category = "malware" if flag == 1 else "benign"
-                    matches[category].append((file_path, entropy, file_hash))
-                    match_found = True
+                    matches[category].append((file_path, header_entropy, file_hash))
+                    logger.debug(f"Match found: {file_path} classified as {category}. Header: {header_entropy} (Target: {target_header_entropy}), Footer: {footer_entropy} (Target: {target_footer_entropy})")
+                    file_processed = True
                     break
 
-            if not match_found:
-                matches["unknown"].append((file_path, entropy, None))
+            if not file_processed:
+                matches["unknown"].append((file_path, header_entropy, None))
+                logger.debug(f"No match: {file_path}. Header: {header_entropy}, Footer: {footer_entropy if footer_entropy is not None else 'N/A'}")
+
+            files_processed += 1
 
     logger.info(f"Scanning completed. Files scanned: {files_scanned}, Files processed: {files_processed}, Matches found: {len(matches['benign'])} benign, {len(matches['malware'])} malware, and {len(matches['unknown'])} unknown.")
     return files_scanned, files_processed, matches
-
 
 
 

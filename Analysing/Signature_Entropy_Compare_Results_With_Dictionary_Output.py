@@ -10,8 +10,8 @@ def read_csv(filename):
         return list(reader)
 
 # ALWAYS check MODE, PREFIX and Directories!
-mode = 'both'   # Can be 'header', 'footer', or 'both'
-prefix = 'SC' # Can be 'SH', 'SF', 'SC', 'EH', 'EF', 'EC'
+mode = 'footer'   # Can be 'header', 'footer', or 'both'
+prefix = 'SF' # Can be 'SH', 'SF', 'SC', 'EH', 'EF', 'EC'
 malicious_csv = read_csv('../DataExchange/datafile_signature_malicious_both_1-600.csv')
 benign_csv = read_csv('../DataExchange/datafile_signature_benign_both_1-600.csv')
 

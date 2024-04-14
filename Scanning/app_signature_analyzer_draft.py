@@ -15,7 +15,7 @@ logger.setLevel(logging.DEBUG)
 hex_malicious_file = "Patterns/datafile_signature_malicious_both_1-600.csv"
 hex_benign_file = "Patterns/datafile_signature_benign_both_1-600.csv"
 
-signature_lengths = [100, 150, 200, 300]
+signature_lengths = [10, 50, 150, 200, 250, 300, 350, 400]
 scan_mode = 'headers_footers'  # Options: 'headers' or 'headers_footers'
 
 
@@ -46,28 +46,39 @@ def read_hex_patterns(csv_file, num_bytes, mode):
             reader = csv.DictReader(csvfile)
             for row in reader:
                 file_hash = row['FileName']
-                pattern = row.get(f"Header{num_bytes}", "") if mode == 'headers' else row.get(f"Footer{num_bytes}", "")
+                if mode == 'headers':
+                    pattern = row.get(f"Header{num_bytes}", "")
+                elif mode == 'headers_footers':
+                    header = row.get(f"Header{num_bytes}", "")
+                    footer = row.get(f"Footer{num_bytes}", "")
+                    pattern = header + footer  # Concatenate header and footer
+
+                    # Log for missing header or footer data
+                    if not header or not footer:
+                        logger.debug(
+                            f"Missing header or footer for pattern at FileHash {file_hash}: Header({header}), Footer({footer})")
+
                 malware_flag = 1 if 'malicious' in csv_file else 0
                 csv_values.append((file_hash, pattern, malware_flag))
-        logger.info(f"Loaded hex patterns from {csv_file} for {mode} {num_bytes}.")
+        logger.info(f"Loaded patterns from {csv_file} for {mode} {num_bytes}.")
     except Exception as e:
-        logger.error(f"Failed to read hex patterns from {csv_file}: {e}")
+        logger.error(f"Failed to read patterns from {csv_file}: {e}")
     return csv_values
-
 
 
 def extract_file_signatures(file_path, num_bytes):
     try:
         with open(file_path, 'rb') as file:
-            file_bytes = file.read()  # Read the file's content
-            hex_signatures = [file_bytes[:i + 1].hex() for i in range(num_bytes) if i < len(file_bytes)]
-            return hex_signatures
+            content = file.read()
+            header = content[:num_bytes].hex()  # get header
+            footer = content[-num_bytes:].hex() if len(content) > num_bytes else ""  # get footer if possible
+            return header, footer
     except Exception as e:
-        logger.error(f"Error extracting hex signatures from {file_path}: {e}")
-        return []
+        logger.error(f"Error extracting signatures from {file_path}: {e}")
+        return "", ""
 
 
-def compare_hex_signatures(directory, patterns, num_bytes):
+def compare_hex_signatures(directory, patterns, num_bytes, mode):
     matches = {"benign": [], "malware": [], "unknown": []}
     files_scanned = 0
 
@@ -75,11 +86,13 @@ def compare_hex_signatures(directory, patterns, num_bytes):
         for file in files:
             file_path = os.path.join(root, file)
             files_scanned += 1
-            hex_signature = extract_file_signatures(file_path, num_bytes)
+            header_signature, footer_signature = extract_file_signatures(file_path, num_bytes, mode)
+
+            combined_signature = header_signature + footer_signature if mode == 'headers_footers' else header_signature
 
             match_found = False
             for file_hash, pattern, flag in patterns:
-                if hex_signature.startswith(pattern):  # Correct usage assuming hex_signature is a string
+                if combined_signature.startswith(pattern):
                     category = "malware" if flag == 1 else "benign"
                     matches[category].append((file_path, file_hash))
                     logger.debug(f"Match found: {file_path} classified as {category} using pattern from {file_hash}")
@@ -95,17 +108,18 @@ def compare_hex_signatures(directory, patterns, num_bytes):
 
 
 
-
-
-def extract_file_signatures(file_path, num_bytes):
+def extract_file_signatures(file_path, num_bytes, mode):
     try:
         with open(file_path, 'rb') as file:
-            file_bytes = file.read(num_bytes)  # Read only the specified number of bytes
-            hex_signature = file_bytes.hex()  # Convert these bytes to a single hex string
-            return hex_signature
+            file_content = file.read()
+            header_signature = file_content[:num_bytes].hex() if len(file_content) >= num_bytes else file_content.hex()
+            footer_signature = file_content[-num_bytes:].hex() if len(file_content) >= num_bytes else ""
     except Exception as e:
-        logger.error(f"Error extracting hex signatures from {file_path}: {e}")
-        return ""
+        logger.error(f"Error extracting signatures from {file_path}: {e}")
+        header_signature = ""
+        footer_signature = ""
+
+    return header_signature, footer_signature
 
 
 
@@ -125,7 +139,8 @@ def main():
         combined_patterns = malicious_patterns + benign_patterns
 
         files_scanned, num_benign, num_malware, num_unknown = compare_hex_signatures(directory_to_scan,
-                                                                                     combined_patterns, bytes_to_read)
+                                                                                     combined_patterns, bytes_to_read,
+                                                                                     scan_mode)
 
         duration = time.time() - start_time
         print(f"{bytes_to_read}, {files_scanned}, {num_malware}, {num_benign}, {num_unknown}, {duration:.2f}")
