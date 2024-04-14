@@ -91,10 +91,17 @@ def compare_entropy(directory, patterns):
     files_processed = 0
 
     for root, dirs, files in os.walk(directory, followlinks=False):
+
+        # Display scanning progress
+        display_path = root[:70] + '...' if len(root) > 70 else root
+        sys.stdout.write(f'\rScanning: {display_path:75}')
+        sys.stdout.flush()
+
+
         for file in files:
             file_path = os.path.join(root, file)
             files_scanned += 1
-            if os.path.getsize(file_path) < 500:
+            if os.path.getsize(file_path) < 1200:
                 continue  # Skip files smaller than 500 bytes
 
             header_entropy = calculate_file_entropy(file_path, bytes_to_read)
@@ -123,6 +130,10 @@ def compare_entropy(directory, patterns):
                 logger.debug(f"No match: {file_path}. Header: {header_entropy}, Footer: {footer_entropy if footer_entropy is not None else 'N/A'}")
 
             files_processed += 1
+
+            # Clear the progress line at the end of directory scanning
+            sys.stdout.write('\r' + ' ' * 80 + '\r')
+            sys.stdout.flush()
 
     logger.info(f"Scanning completed. Files scanned: {files_scanned}, Files processed: {files_processed}, Matches found: {len(matches['benign'])} benign, {len(matches['malware'])} malware, and {len(matches['unknown'])} unknown.")
     return files_scanned, files_processed, matches

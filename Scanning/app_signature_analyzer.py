@@ -2,6 +2,7 @@ import csv
 import logging
 import os
 import platform
+import sys
 from datetime import datetime
 
 # Set up basic logging and paths
@@ -81,29 +82,47 @@ def extract_file_signatures(file_path, num_bytes):
 def compare_hex_signatures(directory, patterns, num_bytes, mode):
     matches = {"benign": [], "malware": [], "unknown": []}
     files_scanned = 0
+    files_processed = 0  # Initialize files processed counter
 
     for root, dirs, files in os.walk(directory, topdown=True):
+        dirs[:] = [d for d in dirs if os.path.join(root, d) not in exclusion_directories]  # Exclude specific directories
+
+        # Update scanning progress on console
+        display_path = root[:70] + '...' if len(root) > 70 else root
+        sys.stdout.write(f'\rScanning: {display_path:75}')
+        sys.stdout.flush()
+
         for file in files:
             file_path = os.path.join(root, file)
-            files_scanned += 1
+            files_scanned += 1  # Every file encountered is counted as scanned
             header_signature, footer_signature = extract_file_signatures(file_path, num_bytes, mode)
 
-            combined_signature = header_signature + footer_signature if mode == 'headers_footers' else header_signature
+            if header_signature or footer_signature:  # Check if signatures were successfully extracted
+                files_processed += 1  # Count as processed only if signatures are extracted
+                combined_signature = header_signature + footer_signature if mode == 'headers_footers' else header_signature
 
-            match_found = False
-            for file_hash, pattern, flag in patterns:
-                if combined_signature.startswith(pattern):
-                    category = "malware" if flag == 1 else "benign"
-                    matches[category].append((file_path, file_hash))
-                    logger.debug(f"Match found: {file_path} classified as {category} using pattern from {file_hash}")
-                    match_found = True
-                    break
+                match_found = False
+                for file_hash, pattern, flag in patterns:
+                    if combined_signature.startswith(pattern):
+                        category = "malware" if flag == 1 else "benign"
+                        matches[category].append((file_path, file_hash))
+                        logger.debug(f"Match found: {file_path} classified as {category} using pattern from {file_hash}")
+                        match_found = True
+                        break
 
-            if not match_found:
-                matches["unknown"].append((file_path, None))
-                logger.debug(f"No match for {file_path}")
+                if not match_found:
+                    matches["unknown"].append((file_path, None))
+                    logger.debug(f"No match for {file_path}")
 
-    return files_scanned, len(matches['benign']), len(matches['malware']), len(matches['unknown'])
+                    # Clear the progress line at the end of scanning
+                    sys.stdout.write('\r' + ' ' * 80 + '\r')
+                    sys.stdout.flush()
+
+    return files_scanned, files_processed, len(matches['benign']), len(matches['malware']), len(matches['unknown'])
+
+   # return files_scanned, len(matches['benign']), len(matches['malware']), len(matches['unknown'])
+
+
 
 def extract_file_signatures(file_path, num_bytes, mode):
     try:
@@ -125,7 +144,7 @@ import time
 
 def main():
     print(f"Directory to scan: {directory_to_scan}")
-    print("Pattern, Total Scanned, Malware, Benign, Unknown, Time")
+    print("Pattern, Total Scanned, Total Processed, Malware, Benign, Unknown, Time")
 
     for length in signature_lengths:
         bytes_to_read = length
@@ -135,14 +154,13 @@ def main():
         benign_patterns = read_hex_patterns(hex_benign_file, bytes_to_read, scan_mode)
         combined_patterns = malicious_patterns + benign_patterns
 
-        files_scanned, num_benign, num_malware, num_unknown = compare_hex_signatures(directory_to_scan,
-                                                                                     combined_patterns, bytes_to_read,
-                                                                                     scan_mode)
+        files_scanned, files_processed, num_benign, num_malware, num_unknown = compare_hex_signatures(
+            directory_to_scan, combined_patterns, bytes_to_read, scan_mode)
 
         duration = time.time() - start_time
-        print(f"{bytes_to_read}, {files_scanned}, {num_malware}, {num_benign}, {num_unknown}, {duration:.2f}")
-        logger.info(f"{bytes_to_read}, {files_scanned}, {num_malware}, {num_benign}, {num_unknown}, {duration:.2f}")
-
+        print(f"{bytes_to_read}, {files_scanned}, {files_processed}, {num_malware}, {num_benign}, {num_unknown}, {duration:.2f}")
+        logger.info(f"{bytes_to_read}, {files_scanned}, {files_processed}, {num_malware}, {num_benign}, {num_unknown}, {duration:.2f}")
 
 if __name__ == "__main__":
     main()
+
