@@ -7,19 +7,18 @@ import sys
 import time
 from datetime import datetime
 
-# Get the current date and time
+import psutil
+
 current_datetime = datetime.now()
-
-# Format the current date and time as a string
 datetime_str = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
-
-# Paths
 log_file_name = f'entropy_value_analyzer_{datetime_str}.log'
+logging.basicConfig(filename=log_file_name, level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger('entropy_value_matcher')
+logger.setLevel(logging.DEBUG)
 
 entropy_malicious_file = "Patterns/datafile_entropy_malicious_both_1-600.csv"
 entropy_benign_file = "Patterns/datafile_entropy_benign_both_1-600.csv"
-
-signature_lengths = [10, 50, 150, 200, 250, 300, 350, 400]
+signature_lengths = [120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320, 340, 360, 380, 400, 420, 440]
 scan_mode = 'headers_footers'  # Options: 'headers' or 'headers_footers'
 
 if platform.system() == 'Windows':
@@ -32,23 +31,20 @@ elif platform.system() == 'Darwin':
     exclusion_directories = ['/System', '/Library', os.path.expanduser('~/Library'), '/sbin', '/usr/bin', '/usr/sbin',
                              '/Volumes', '/private', '/.Spotlight-V100', '/.fseventsd', '/dev']
 elif platform.system() == 'Linux':
-    directory_to_scan = "/home/cs20m039/thesis/dataset1/"  # Customise: target directory for Linux
+    directory_to_scan = "/home/cs20m039/thesis/dataset1/"
     exclusion_directories = ['/sys/kernel/security']
-#  exclusion_directories = ['/sys', '/proc', '/dev', '/snap']
 
-logging.basicConfig(filename=log_file_name, level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger('entropy_value_matcher')
-logger.setLevel(logging.DEBUG)
+
+def get_system_usage():
+    cpu_percent = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    return memory.percent, cpu_percent
+
 
 def read_entropy_values(csv_file, bytes_to_read, mode, malware_flag):
-    """Read entropy values from CSV file for the specified bytes and mode (headers only or headers and footers), tagging with malware flag."""
     csv_values = []
     header_col = f"Header{bytes_to_read}"
     footer_col = f"Footer{bytes_to_read}" if mode == "headers_footers" else None
-
-    if not os.path.exists(csv_file):
-        logger.error(f"CSV file does not exist: {csv_file}")
-        sys.exit("Exiting due to missing CSV file.")
 
     try:
         with open(csv_file, newline='') as csvfile:
@@ -57,115 +53,119 @@ def read_entropy_values(csv_file, bytes_to_read, mode, malware_flag):
                 file_hash = row['FileName']
                 header_entropy = float(row[header_col])
                 footer_entropy = float(row[footer_col]) if footer_col and row[footer_col] else None
-
-                # Append with malware_flag
                 csv_values.append((file_hash, header_entropy, footer_entropy, malware_flag))
         logger.info(f"Loaded entropy values for {bytes_to_read} bytes from {csv_file}.")
     except Exception as e:
         logger.error(f"Failed to read entropy values from {csv_file}: {e}")
+        sys.exit("Exiting due to file read failure.")
     return csv_values
 
 
-
 def calculate_file_entropy(file_path, bytes_to_read, footer=False):
-    """Calculate entropy for either header or footer of the file."""
     try:
         with open(file_path, 'rb') as file:
             if footer:
-                file.seek(-bytes_to_read, os.SEEK_END)  # Move to the end for footer
+                file.seek(-bytes_to_read, os.SEEK_END)
             file_bytes = file.read(bytes_to_read)
             if not file_bytes:
                 return None
             byte_arr = [0] * 256
             for byte in file_bytes:
                 byte_arr[byte] += 1
-            entropy = -sum((count / len(file_bytes)) * math.log(count / len(file_bytes), 2) for count in byte_arr if count > 0)
+            entropy = -sum(
+                (count / len(file_bytes)) * math.log(count / len(file_bytes), 2) for count in byte_arr if count > 0)
             return entropy
     except Exception as e:
         logger.error(f"Error calculating entropy for {file_path}: {e}")
         return None
 
-def compare_entropy(directory, patterns):
+
+def compare_entropy(directory, patterns, bytes_to_read):
     matches = {"benign": [], "malware": [], "unknown": []}
     files_scanned = 0
     files_processed = 0
 
     for root, dirs, files in os.walk(directory, followlinks=False):
-
-        # Display scanning progress
-        display_path = root[:70] + '...' if len(root) > 70 else root
-        sys.stdout.write(f'\rScanning: {display_path:75}')
-        sys.stdout.flush()
-
-
         for file in files:
             file_path = os.path.join(root, file)
             files_scanned += 1
             if os.path.getsize(file_path) < 1200:
-                continue  # Skip files smaller than 500 bytes
+                continue
 
             header_entropy = calculate_file_entropy(file_path, bytes_to_read)
-            footer_entropy = calculate_file_entropy(file_path, bytes_to_read, footer=True) if scan_mode == 'headers_footers' else None
+            footer_entropy = calculate_file_entropy(file_path, bytes_to_read,
+                                                    footer=True) if scan_mode == 'headers_footers' else None
             file_processed = False
 
             for file_hash, target_header_entropy, target_footer_entropy, flag in patterns:
-                header_match = abs(header_entropy - target_header_entropy) < 0.000001 if header_entropy is not None else False
-                footer_match = abs(footer_entropy - target_footer_entropy) < 0.000001 if footer_entropy is not None else False
-
-                # Ensure both header and footer match when in 'headers_footers' mode
-                if scan_mode == 'headers_footers':
-                    match = header_match and footer_match
-                else:
-                    match = header_match  # In 'headers' mode, only header needs to match
+                header_match = abs(
+                    header_entropy - target_header_entropy) < 0.000001 if header_entropy is not None else False
+                footer_match = abs(
+                    footer_entropy - target_footer_entropy) < 0.000001 if footer_entropy is not None else False
+                match = header_match and footer_match if scan_mode == 'headers_footers' else header_match
 
                 if match:
                     category = "malware" if flag == 1 else "benign"
-                    matches[category].append((file_path, header_entropy, file_hash))
-                    logger.debug(f"Match found: {file_path} classified as {category}. Header: {header_entropy} (Target: {target_header_entropy}), Footer: {footer_entropy} (Target: {target_footer_entropy})")
+                    matches[category].append((file_path, header_entropy, footer_entropy, file_hash))
+                    logger.debug(f"Match found: {file_path} classified as {category}.")
                     file_processed = True
                     break
 
             if not file_processed:
-                matches["unknown"].append((file_path, header_entropy, None))
-                logger.debug(f"No match: {file_path}. Header: {header_entropy}, Footer: {footer_entropy if footer_entropy is not None else 'N/A'}")
+                matches["unknown"].append((file_path, header_entropy, footer_entropy, None))
+                logger.debug(f"No match: {file_path}.")
 
             files_processed += 1
 
-            # Clear the progress line at the end of directory scanning
-            sys.stdout.write('\r' + ' ' * 80 + '\r')
-            sys.stdout.flush()
-
-    logger.info(f"Scanning completed. Files scanned: {files_scanned}, Files processed: {files_processed}, Matches found: {len(matches['benign'])} benign, {len(matches['malware'])} malware, and {len(matches['unknown'])} unknown.")
     return files_scanned, files_processed, matches
 
 
-
 def main():
-    start_time = time.time()
-    print(f"Directory to scan: {directory_to_scan}")
-    print("Pattern, Total Scanned, Processed, Malware, Benign, Unknown, Time")
+    print("Pattern, Total Scanned, Processed, Malware, Benign, Unknown, Time, Memory Usage (%), CPU Usage (%)")
+
+    data = {'Pattern': [], 'Total Scanned': [], 'Total Processed': [], 'Malware': [], 'Benign': [], 'Unknown': [],
+            'Time': [], 'Memory Usage (%)': [], 'CPU Usage (%)': []}
 
     for length in signature_lengths:
-        config_start_time = time.time()
-        global bytes_to_read
         bytes_to_read = length
 
-        # Process and tag malicious patterns
-        malicious_patterns = read_entropy_values(entropy_malicious_file, bytes_to_read, scan_mode, 1)
-        # Process and tag benign patterns
-        benign_patterns = read_entropy_values(entropy_benign_file, bytes_to_read, scan_mode, 0)
+        start_time = time.time()
 
-        # Combine patterns to pass to the scanning function
+        memory_usage_before, cpu_usage_before = get_system_usage()
+        malicious_patterns = read_entropy_values(entropy_malicious_file, bytes_to_read, scan_mode, 1)
+        benign_patterns = read_entropy_values(entropy_benign_file, bytes_to_read, scan_mode, 0)
         combined_patterns = malicious_patterns + benign_patterns
 
-        files_scanned, files_processed, matches = compare_entropy(directory_to_scan, combined_patterns)
-        config_duration = time.time() - config_start_time
+        files_scanned, files_processed, matches = compare_entropy(directory_to_scan, combined_patterns, bytes_to_read)
 
-        print(f"{bytes_to_read}, {files_scanned}, {files_processed}, {len(matches['malware'])}, {len(matches['benign'])}, {len(matches['unknown'])}, {config_duration:.2f}")
-        logger.info(f"{bytes_to_read}, {files_scanned}, {files_processed}, {len(matches['malware'])}, {len(matches['benign'])}, {len(matches['unknown'])}, {config_duration:.2f}")
+        memory_usage_after, cpu_usage_after = get_system_usage()
 
-    duration = time.time() - start_time
-    print(f"\nTotal scanning completed in {duration:.2f} seconds.")
+        duration = time.time() - start_time
+        avg_memory_usage = (memory_usage_before + memory_usage_after) / 2
+        avg_cpu_usage = (cpu_usage_before + cpu_usage_after) / 2
+
+        print(
+            f"{bytes_to_read}, {files_scanned}, {files_processed}, {len(matches['malware'])}, {len(matches['benign'])}, {len(matches['unknown'])}, {duration:.2f}, {avg_memory_usage:.2f}, {avg_cpu_usage:.2f}")
+
+        data['Pattern'].append(bytes_to_read)
+        data['Total Scanned'].append(files_scanned)
+        data['Total Processed'].append(files_processed)
+        data['Malware'].append(len(matches['malware']))
+        data['Benign'].append(len(matches['benign']))
+        data['Unknown'].append(len(matches['unknown']))
+        data['Time'].append(duration)
+        data['Memory Usage (%)'].append(avg_memory_usage)
+        data['CPU Usage (%)'].append(avg_cpu_usage)
+
+    print("\nCompleted scan, summary of results:")
+    for key in data:
+        print(f"{key}: {data[key]}")
+
+    # Export to CSV
+    with open('entropy_scan_results.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(data.keys())
+        writer.writerows(zip(*data.values()))
 
 
 if __name__ == "__main__":

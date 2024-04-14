@@ -2,8 +2,10 @@ import csv
 import logging
 import os
 import platform
-import sys
+import time
 from datetime import datetime
+
+import psutil
 
 # Set up basic logging and paths
 current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -16,7 +18,7 @@ logger.setLevel(logging.DEBUG)
 hex_malicious_file = "Patterns/datafile_signature_malicious_both_1-600.csv"
 hex_benign_file = "Patterns/datafile_signature_benign_both_1-600.csv"
 
-signature_lengths = [10, 50, 150, 200, 250, 300, 350, 400]
+signature_lengths = [10, 50]
 scan_mode = 'headers_footers'  # Options: 'headers' or 'headers_footers'
 
 
@@ -40,7 +42,13 @@ def get_scan_paths():
 directory_to_scan, exclusion_directories = get_scan_paths()
 
 
-def read_hex_patterns(csv_file, num_bytes, mode):
+def get_system_usage():
+    cpu_percent = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    return memory.percent, cpu_percent
+
+
+def read_patterns(csv_file, num_bytes, mode):
     csv_values = []
     try:
         with open(csv_file, newline='') as csvfile:
@@ -78,19 +86,30 @@ def extract_file_signatures(file_path, num_bytes):
         logger.error(f"Error extracting signatures from {file_path}: {e}")
         return "", ""
 
+""" old version
+def extract_file_signatures(file_path, num_bytes):
+    try:
+        header_signature, footer_signature = "", ""
+        with open(file_path, 'rb') as file:
+            # Read the header
+            header_signature = file.read(num_bytes).hex()
+            # Move to the end of the file to read the footer
+            file.seek(-num_bytes, os.SEEK_END)
+            footer_signature = file.read(num_bytes).hex()
+    except Exception as e:
+        logger.error(f"Error extracting signatures from {file_path}: {e}")
+    return header_signature, footer_signature
+"""
 
-def compare_hex_signatures(directory, patterns, num_bytes, mode):
+
+def compare_signatures(directory, patterns, num_bytes, mode):
     matches = {"benign": [], "malware": [], "unknown": []}
     files_scanned = 0
     files_processed = 0  # Initialize files processed counter
 
     for root, dirs, files in os.walk(directory, topdown=True):
-        dirs[:] = [d for d in dirs if os.path.join(root, d) not in exclusion_directories]  # Exclude specific directories
-
-        # Update scanning progress on console
-        display_path = root[:70] + '...' if len(root) > 70 else root
-        sys.stdout.write(f'\rScanning: {display_path:75}')
-        sys.stdout.flush()
+        dirs[:] = [d for d in dirs if
+                   os.path.join(root, d) not in exclusion_directories]  # Exclude specific directories
 
         for file in files:
             file_path = os.path.join(root, file)
@@ -106,7 +125,8 @@ def compare_hex_signatures(directory, patterns, num_bytes, mode):
                     if combined_signature.startswith(pattern):
                         category = "malware" if flag == 1 else "benign"
                         matches[category].append((file_path, file_hash))
-                        logger.debug(f"Match found: {file_path} classified as {category} using pattern from {file_hash}")
+                        logger.debug(
+                            f"Match found: {file_path} classified as {category} using pattern from {file_hash}")
                         match_found = True
                         break
 
@@ -114,14 +134,10 @@ def compare_hex_signatures(directory, patterns, num_bytes, mode):
                     matches["unknown"].append((file_path, None))
                     logger.debug(f"No match for {file_path}")
 
-                    # Clear the progress line at the end of scanning
-                    sys.stdout.write('\r' + ' ' * 80 + '\r')
-                    sys.stdout.flush()
-
     return files_scanned, files_processed, len(matches['benign']), len(matches['malware']), len(matches['unknown'])
 
-   # return files_scanned, len(matches['benign']), len(matches['malware']), len(matches['unknown'])
 
+# return files_scanned, len(matches['benign']), len(matches['malware']), len(matches['unknown'])
 
 
 def extract_file_signatures(file_path, num_bytes, mode):
@@ -138,29 +154,61 @@ def extract_file_signatures(file_path, num_bytes, mode):
     return header_signature, footer_signature
 
 
-
-import time
-
-
 def main():
     print(f"Directory to scan: {directory_to_scan}")
-    print("Pattern, Total Scanned, Total Processed, Malware, Benign, Unknown, Time")
+    print("Pattern, Total Scanned, Total Processed, Malware, Benign, Unknown, Time, Memory Usage (%), CPU Usage (%)")
+
+    # Data structure to hold results
+    data = {'Pattern': [], 'Total Scanned': [], 'Total Processed': [], 'Malware': [],
+            'Benign': [], 'Unknown': [], 'Time': [], 'Memory Usage (%)': [], 'CPU Usage (%)': []}
 
     for length in signature_lengths:
         bytes_to_read = length
         start_time = time.time()
 
-        malicious_patterns = read_hex_patterns(hex_malicious_file, bytes_to_read, scan_mode)
-        benign_patterns = read_hex_patterns(hex_benign_file, bytes_to_read, scan_mode)
+        # Log system usage before processing patterns
+        memory_usage_before, cpu_usage_before = get_system_usage()
+
+        malicious_patterns = read_patterns(hex_malicious_file, bytes_to_read, scan_mode)
+        benign_patterns = read_patterns(hex_benign_file, bytes_to_read, scan_mode)
         combined_patterns = malicious_patterns + benign_patterns
 
-        files_scanned, files_processed, num_benign, num_malware, num_unknown = compare_hex_signatures(
+        files_scanned, files_processed, num_benign, num_malware, num_unknown = compare_signatures(
             directory_to_scan, combined_patterns, bytes_to_read, scan_mode)
 
+        # Log system usage after processing
+        memory_usage_after, cpu_usage_after = get_system_usage()
+
         duration = time.time() - start_time
-        print(f"{bytes_to_read}, {files_scanned}, {files_processed}, {num_malware}, {num_benign}, {num_unknown}, {duration:.2f}")
-        logger.info(f"{bytes_to_read}, {files_scanned}, {files_processed}, {num_malware}, {num_benign}, {num_unknown}, {duration:.2f}")
+        avg_memory_usage = (memory_usage_before + memory_usage_after) / 2
+        avg_cpu_usage = (cpu_usage_before + cpu_usage_after) / 2
+
+        # Print results for each pattern
+        print(f"{bytes_to_read}, {files_scanned}, {files_processed}, {num_malware}, {num_benign}, {num_unknown}, "
+              f"{duration:.2f}, {avg_memory_usage:.2f}, {avg_cpu_usage:.2f}")
+
+        # Append results to the data dictionary
+        data['Pattern'].append(bytes_to_read)
+        data['Total Scanned'].append(files_scanned)
+        data['Total Processed'].append(files_processed)
+        data['Malware'].append(num_malware)
+        data['Benign'].append(num_benign)
+        data['Unknown'].append(num_unknown)
+        data['Time'].append(f"{duration:.2f}")
+        data['Memory Usage (%)'].append(f"{avg_memory_usage:.2f}")
+        data['CPU Usage (%)'].append(f"{avg_cpu_usage:.2f}")
+
+    # Optionally, print all results at the end or export them to a CSV
+    print("\nCompleted scan, summary of results:")
+    for key in data:
+        print(f"{key}: {data[key]}")
+
+    # To export to CSV
+    with open('scan_results.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(data.keys())
+        writer.writerows(zip(*data.values()))
+
 
 if __name__ == "__main__":
     main()
-
