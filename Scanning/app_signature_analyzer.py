@@ -18,7 +18,7 @@ logger.setLevel(logging.DEBUG)
 hex_malicious_file = "Patterns/datafile_signature_malicious_both_1-600.csv"
 hex_benign_file = "Patterns/datafile_signature_benign_both_1-600.csv"
 
-signature_lengths = [10, 50]
+signature_lengths = [100, 200, 300, 400, 500]
 scan_mode = 'headers_footers'  # Options: 'headers' or 'headers_footers'
 
 

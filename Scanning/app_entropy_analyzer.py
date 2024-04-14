@@ -18,7 +18,7 @@ logger.setLevel(logging.DEBUG)
 
 entropy_malicious_file = "Patterns/datafile_entropy_malicious_both_1-600.csv"
 entropy_benign_file = "Patterns/datafile_entropy_benign_both_1-600.csv"
-signature_lengths = [120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320, 340, 360, 380, 400, 420, 440]
+signature_lengths = [100, 200, 300, 400, 500]
 scan_mode = 'headers_footers'  # Options: 'headers' or 'headers_footers'
 
 if platform.system() == 'Windows':
