@@ -77,18 +77,6 @@ def read_patterns(csv_file, num_bytes, mode):
 
 def extract_file_signatures(file_path, num_bytes):
     try:
-        with open(file_path, 'rb') as file:
-            content = file.read()
-            header = content[:num_bytes].hex()  # get header
-            footer = content[-num_bytes:].hex() if len(content) > num_bytes else ""  # get footer if possible
-            return header, footer
-    except Exception as e:
-        logger.error(f"Error extracting signatures from {file_path}: {e}")
-        return "", ""
-
-""" old version
-def extract_file_signatures(file_path, num_bytes):
-    try:
         header_signature, footer_signature = "", ""
         with open(file_path, 'rb') as file:
             # Read the header
@@ -99,7 +87,6 @@ def extract_file_signatures(file_path, num_bytes):
     except Exception as e:
         logger.error(f"Error extracting signatures from {file_path}: {e}")
     return header_signature, footer_signature
-"""
 
 
 def compare_signatures(directory, patterns, num_bytes, mode):
