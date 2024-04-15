@@ -8,39 +8,36 @@ from datetime import datetime
 import psutil
 
 # Set up basic logging and paths
-current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-log_file_name = f'hex_signature_analyzer_{current_datetime}.log'
-logging.basicConfig(filename=log_file_name, level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger('hex_signature_matcher')
-logger.setLevel(logging.DEBUG)
+current_datetime = datetime.now()
+datetime_str = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
+log_file_name = f'signature_value_analyzer_{datetime_str}.log'
+logging.basicConfig(filename=log_file_name, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger('signature_value_matcher')
 
 # Data paths
 hex_malicious_file = "Patterns/datafile_signature_malicious_both_1-600.csv"
 hex_benign_file = "Patterns/datafile_signature_benign_both_1-600.csv"
 
-signature_lengths = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
+signature_lengths = [50]
 scan_mode = 'headers'  # Options: 'headers' or 'headers_footers'
 
+directory = "/home/cs20m039/thesis/dataset3"
+exclusions = []
 
-def get_scan_paths():
-    if platform.system() == 'Windows':
-        username = os.environ.get('USERNAME')
-        print(f"{username}")
-        directory = "C:\\"
-        exclusions = ['C:\\Windows', 'C:\\Program Files', 'C:\\Program Files (x86)', 'C:\\ProgramData','C:\\Users\\{username}\\AppData']
-        print(f"{exclusions}")
-    elif platform.system() == 'Darwin':
-        directory = "/"
-        exclusions = ['/System', '/Library', '/sbin', '/usr/bin', '/usr/sbin', '/Volumes', '/private',
-                      '/.Spotlight-V100', '/.fseventsd', '/dev']
-    elif platform.system() == 'Linux':
-        directory = "/"
-        exclusions = ['/sys/kernel/security']
-    return directory, exclusions
+if platform.system() == 'Windows':
+    username = os.environ.get('USERNAME')
+    directory = "C:\\"
+    exclusions = ['C:\\Windows', 'C:\\Program Files', 'C:\\Program Files (x86)', 'C:\\ProgramData',
+                  f"C:\\Users\\{username}\\AppData"]
+elif platform.system() == 'Darwin':
+    exclusions = ['/System', '/Library', '/sbin', '/usr/bin', '/usr/sbin', '/Volumes', '/private', '/.Spotlight-V100',
+                  '/.fseventsd', '/dev']
+elif platform.system() == 'Linux':
+    exclusions = ['/sys/kernel/security']
+else:
+    logger.warning("Platform not recognized, using default directory and no exclusions")
 
-
-# Define file paths and exclusion directories based on operating system
-directory_to_scan, exclusion_directories = get_scan_paths()
+logger.info(f"Exclusions for {platform.system()}: {exclusions}")
 
 
 def get_system_usage():
@@ -97,7 +94,7 @@ def compare_signatures(directory, patterns, num_bytes, mode):
 
     for root, dirs, files in os.walk(directory, topdown=True):
         dirs[:] = [d for d in dirs if
-                   os.path.join(root, d) not in exclusion_directories]  # Exclude specific directories
+                   os.path.join(root, d) not in exclusions]  # Exclude specific directories
 
         for file in files:
             file_path = os.path.join(root, file)
@@ -143,7 +140,7 @@ def extract_file_signatures(file_path, num_bytes, mode):
 
 
 def main():
-    print(f"Directory to scan: {directory_to_scan}")
+    print(f"Directory to scan: {directory}")
     print("Pattern, Total Scanned, Total Processed, Malware, Benign, Unknown, Time, Memory Usage (%), CPU Usage (%)")
 
     # Data structure to hold results
@@ -162,7 +159,7 @@ def main():
         combined_patterns = malicious_patterns + benign_patterns
 
         files_scanned, files_processed, num_benign, num_malware, num_unknown = compare_signatures(
-            directory_to_scan, combined_patterns, bytes_to_read, scan_mode)
+            directory, combined_patterns, bytes_to_read, scan_mode)
 
         # Log system usage after processing
         memory_usage_after, cpu_usage_after = get_system_usage()
@@ -174,28 +171,6 @@ def main():
         # Print results for each pattern
         print(f"{bytes_to_read}, {files_scanned}, {files_processed}, {num_malware}, {num_benign}, {num_unknown}, "
               f"{duration:.2f}, {avg_memory_usage:.2f}, {avg_cpu_usage:.2f}")
-
-        # Append results to the data dictionary
-        data['Pattern'].append(bytes_to_read)
-        data['Total Scanned'].append(files_scanned)
-        data['Total Processed'].append(files_processed)
-        data['Malware'].append(num_malware)
-        data['Benign'].append(num_benign)
-        data['Unknown'].append(num_unknown)
-        data['Time'].append(f"{duration:.2f}")
-        data['Memory Usage (%)'].append(f"{avg_memory_usage:.2f}")
-        data['CPU Usage (%)'].append(f"{avg_cpu_usage:.2f}")
-
-    # Optionally, print all results at the end or export them to a CSV
-    print("\nCompleted scan, summary of results:")
-    for key in data:
-        print(f"{key}: {data[key]}")
-
-    # To export to CSV
-    with open('scan_results.csv', 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(data.keys())
-        writer.writerows(zip(*data.values()))
 
 
 if __name__ == "__main__":
