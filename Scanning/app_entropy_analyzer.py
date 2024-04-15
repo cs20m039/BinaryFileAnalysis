@@ -17,7 +17,7 @@ logger = logging.getLogger('entropy_value_matcher')
 
 entropy_malicious_file = "Patterns/datafile_entropy_malicious_both_1-600.csv"
 entropy_benign_file = "Patterns/datafile_entropy_benign_both_1-600.csv"
-signature_lengths = [50]
+signature_lengths = [10]
 scan_mode = 'headers'  # Options: 'headers' or 'headers_footers'
 
 directory = "/home/cs20m039/thesis/dataset3"

@@ -18,7 +18,7 @@ logger = logging.getLogger('signature_value_matcher')
 hex_malicious_file = "Patterns/datafile_signature_malicious_both_1-600.csv"
 hex_benign_file = "Patterns/datafile_signature_benign_both_1-600.csv"
 
-signature_lengths = [50]
+signature_lengths = [10]
 scan_mode = 'headers'  # Options: 'headers' or 'headers_footers'
 
 directory = "/home/cs20m039/thesis/dataset3"
@@ -73,58 +73,6 @@ def read_patterns(csv_file, num_bytes, mode):
     return csv_values
 
 
-def extract_file_signatures(file_path, num_bytes):
-    try:
-        header_signature, footer_signature = "", ""
-        with open(file_path, 'rb') as file:
-            # Read the header
-            header_signature = file.read(num_bytes).hex()
-            # Move to the end of the file to read the footer
-            file.seek(-num_bytes, os.SEEK_END)
-            footer_signature = file.read(num_bytes).hex()
-    except Exception as e:
-        logger.error(f"Error extracting signatures from {file_path}: {e}")
-    return header_signature, footer_signature
-
-
-def compare_signatures(directory, patterns, num_bytes, mode):
-    matches = {"benign": [], "malware": [], "unknown": []}
-    files_scanned = 0
-    files_processed = 0  # Initialize files processed counter
-
-    for root, dirs, files in os.walk(directory, topdown=True):
-        dirs[:] = [d for d in dirs if
-                   os.path.join(root, d) not in exclusions]  # Exclude specific directories
-
-        for file in files:
-            file_path = os.path.join(root, file)
-            files_scanned += 1  # Every file encountered is counted as scanned
-            header_signature, footer_signature = extract_file_signatures(file_path, num_bytes, mode)
-
-            if header_signature or footer_signature:  # Check if signatures were successfully extracted
-                files_processed += 1  # Count as processed only if signatures are extracted
-                combined_signature = header_signature + footer_signature if mode == 'headers_footers' else header_signature
-
-                match_found = False
-                for file_hash, pattern, flag in patterns:
-                    if combined_signature.startswith(pattern):
-                        category = "malware" if flag == 1 else "benign"
-                        matches[category].append((file_path, file_hash))
-                        logger.debug(
-                            f"Match found: {file_path} classified as {category} using pattern from {file_hash}")
-                        match_found = True
-                        break
-
-                if not match_found:
-                    matches["unknown"].append((file_path, None))
-                    logger.debug(f"No match for {file_path}")
-
-    return files_scanned, files_processed, len(matches['benign']), len(matches['malware']), len(matches['unknown'])
-
-
-# return files_scanned, len(matches['benign']), len(matches['malware']), len(matches['unknown'])
-
-
 def extract_file_signatures(file_path, num_bytes, mode):
     try:
         with open(file_path, 'rb') as file:
@@ -137,6 +85,55 @@ def extract_file_signatures(file_path, num_bytes, mode):
         footer_signature = ""
 
     return header_signature, footer_signature
+
+
+def compare_signatures(directory, patterns, num_bytes, mode):
+    matches = {"benign": [], "malware": [], "unknown": []}
+    files_scanned = 0
+    files_processed = 0  # Initialize files processed counter
+
+    for root, dirs, files in os.walk(directory, topdown=True):
+        dirs[:] = [d for d in dirs if os.path.join(root, d) not in exclusions]  # Apply exclusions
+
+        for file in files:
+            file_path = os.path.join(root, file)
+            files_scanned += 1  # Count every file encountered
+
+            # Check if the file exists and is readable
+            if not os.path.exists(file_path) or not os.access(file_path, os.R_OK):
+                logger.error(f"Cannot access file: {file_path}")
+                continue
+
+            # Check if the file meets the minimum size requirement
+            try:
+                file_size = os.path.getsize(file_path)
+                if file_size < 1200:  # Skip files that are too small to process
+                    continue
+
+                header_signature, footer_signature = extract_file_signatures(file_path, num_bytes, mode)
+
+                if header_signature or footer_signature:  # Check if signatures were successfully extracted
+                    files_processed += 1  # Count as processed only if signatures are extracted
+                    combined_signature = header_signature + footer_signature if mode == 'headers_footers' else header_signature
+
+                    match_found = False
+                    for file_hash, pattern, flag in patterns:
+                        if combined_signature.startswith(pattern):
+                            category = "malware" if flag == 1 else "benign"
+                            matches[category].append((file_path, file_hash))
+                            logger.debug(
+                                f"Match found: {file_path} classified as {category} using pattern from {file_hash}")
+                            match_found = True
+                            break
+
+                    if not match_found:
+                        matches["unknown"].append((file_path, None))
+                        logger.debug(f"No match for {file_path}")
+
+            except Exception as e:
+                logger.error(f"Error processing file {file_path}: {e}")
+
+    return files_scanned, files_processed, len(matches['benign']), len(matches['malware']), len(matches['unknown'])
 
 
 def main():
