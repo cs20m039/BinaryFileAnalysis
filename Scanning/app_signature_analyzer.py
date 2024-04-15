@@ -18,22 +18,23 @@ logger.setLevel(logging.DEBUG)
 hex_malicious_file = "Patterns/datafile_signature_malicious_both_1-600.csv"
 hex_benign_file = "Patterns/datafile_signature_benign_both_1-600.csv"
 
-signature_lengths = [100, 200, 300, 400, 500]
-scan_mode = 'headers_footers'  # Options: 'headers' or 'headers_footers'
+signature_lengths = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
+scan_mode = 'headers'  # Options: 'headers' or 'headers_footers'
 
 
 def get_scan_paths():
     if platform.system() == 'Windows':
         username = os.environ.get('USERNAME')
+        print(f"{username}")
         directory = "C:\\"
-        exclusions = ['C:\\Windows', 'C:\\Program Files', 'C:\\Program Files (x86)', 'C:\\ProgramData',
-                      f'C:\\Users\\{username}\\AppData']
+        exclusions = ['C:\\Windows', 'C:\\Program Files', 'C:\\Program Files (x86)', 'C:\\ProgramData','C:\\Users\\{username}\\AppData']
+        print(f"{exclusions}")
     elif platform.system() == 'Darwin':
         directory = "/"
         exclusions = ['/System', '/Library', '/sbin', '/usr/bin', '/usr/sbin', '/Volumes', '/private',
                       '/.Spotlight-V100', '/.fseventsd', '/dev']
     elif platform.system() == 'Linux':
-        directory = "/home/cs20m039/thesis/dataset1/"
+        directory = "/"
         exclusions = ['/sys/kernel/security']
     return directory, exclusions
 

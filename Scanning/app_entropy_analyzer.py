@@ -18,8 +18,8 @@ logger.setLevel(logging.DEBUG)
 
 entropy_malicious_file = "Patterns/datafile_entropy_malicious_both_1-600.csv"
 entropy_benign_file = "Patterns/datafile_entropy_benign_both_1-600.csv"
-signature_lengths = [100, 200, 300, 400, 500]
-scan_mode = 'headers_footers'  # Options: 'headers' or 'headers_footers'
+signature_lengths = [480, 490, 500, 510, 520]
+scan_mode = 'headers'  # Options: 'headers' or 'headers_footers'
 
 if platform.system() == 'Windows':
     username = os.environ.get('USERNAME')
@@ -31,7 +31,7 @@ elif platform.system() == 'Darwin':
     exclusion_directories = ['/System', '/Library', os.path.expanduser('~/Library'), '/sbin', '/usr/bin', '/usr/sbin',
                              '/Volumes', '/private', '/.Spotlight-V100', '/.fseventsd', '/dev']
 elif platform.system() == 'Linux':
-    directory_to_scan = "/home/cs20m039/thesis/dataset1/"
+    directory_to_scan = "/"
     exclusion_directories = ['/sys/kernel/security']
 
 
