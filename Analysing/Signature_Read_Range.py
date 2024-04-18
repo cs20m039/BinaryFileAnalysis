@@ -7,11 +7,11 @@ import os
 INTERVAL_START = 1
 INTERVAL_END = 600 # The size is the minimum file size read as well
 READ_MODE = 'both'  # Can be 'header', 'footer', or 'both'
-MALICIOUS_DIRECTORY = "/home/cs20m039/thesis/dataset1/malicious"
-BENIGN_DIRECTORY = "/home/cs20m039/thesis/dataset1/benign"
-OUTPUT_CSV_PREFIX = "../DataExchange/datafile_signature_"
+MALICIOUS_DIRECTORY = "/home/cs20m039/thesis/dataset3/malicious"
+BENIGN_DIRECTORY = "/home/cs20m039/thesis/dataset3/benign"
+OUTPUT_CSV_PREFIX = "../DataExchange/datafile_signature_ds3_"
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-LOG_FILE_PATH = f'../Logfiles/log_signature_read_both_1-10_{timestamp}.txt'
+LOG_FILE_PATH = f'../Logfiles/log_signature_read_both_1-600_DS3_{timestamp}.txt'
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s', filename=LOG_FILE_PATH,
                     filemode='w')

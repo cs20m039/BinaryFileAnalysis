@@ -15,8 +15,8 @@ logging.basicConfig(filename=log_file_name, level=logging.INFO, format='%(asctim
 logger = logging.getLogger('signature_value_matcher')
 
 # Data paths
-hex_malicious_file = "Patterns/datafile_signature_malicious_both_1-600.csv"
-hex_benign_file = "Patterns/datafile_signature_benign_both_1-600.csv"
+malicious_file = "Patterns/datafile_signature_malicious_both_1-600.csv"
+benign_file = "Patterns/datafile_signature_benign_both_1-600.csv"
 
 signature_lengths = [10]
 scan_mode = 'headers'  # Options: 'headers' or 'headers_footers'
@@ -76,15 +76,14 @@ def read_patterns(csv_file, num_bytes, mode):
 def extract_file_signatures(file_path, num_bytes, mode):
     try:
         with open(file_path, 'rb') as file:
-            file_content = file.read()
-            header_signature = file_content[:num_bytes].hex() if len(file_content) >= num_bytes else file_content.hex()
-            footer_signature = file_content[-num_bytes:].hex() if len(file_content) >= num_bytes else ""
+            header_signature = file.read(num_bytes).hex()
+            file.seek(-num_bytes, os.SEEK_END)  # Move to the end for footer
+            footer_signature = file.read(num_bytes).hex()
     except Exception as e:
         logger.error(f"Error extracting signatures from {file_path}: {e}")
-        header_signature = ""
-        footer_signature = ""
-
+        header_signature, footer_signature = "", ""
     return header_signature, footer_signature
+
 
 
 def compare_signatures(directory, patterns, num_bytes, mode):
@@ -151,8 +150,8 @@ def main():
         # Log system usage before processing patterns
         memory_usage_before, cpu_usage_before = get_system_usage()
 
-        malicious_patterns = read_patterns(hex_malicious_file, bytes_to_read, scan_mode)
-        benign_patterns = read_patterns(hex_benign_file, bytes_to_read, scan_mode)
+        malicious_patterns = read_patterns(malicious_file, bytes_to_read, scan_mode)
+        benign_patterns = read_patterns(benign_file, bytes_to_read, scan_mode)
         combined_patterns = malicious_patterns + benign_patterns
 
         files_scanned, files_processed, num_benign, num_malware, num_unknown = compare_signatures(

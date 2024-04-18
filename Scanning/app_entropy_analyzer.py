@@ -15,8 +15,8 @@ log_file_name = f'entropy_value_analyzer_{datetime_str}.log'
 logging.basicConfig(filename=log_file_name, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('entropy_value_matcher')
 
-entropy_malicious_file = "Patterns/datafile_entropy_malicious_both_1-600.csv"
-entropy_benign_file = "Patterns/datafile_entropy_benign_both_1-600.csv"
+malicious_file = "Patterns/datafile_entropy_malicious_both_1-600.csv"
+benign_file = "Patterns/datafile_entropy_benign_both_1-600.csv"
 signature_lengths = [10]
 scan_mode = 'headers'  # Options: 'headers' or 'headers_footers'
 
@@ -148,8 +148,8 @@ def main():
         start_time = time.time()
 
         memory_usage_before, cpu_usage_before = get_system_usage()
-        malicious_patterns = read_entropy_values(entropy_malicious_file, bytes_to_read, scan_mode, 1)
-        benign_patterns = read_entropy_values(entropy_benign_file, bytes_to_read, scan_mode, 0)
+        malicious_patterns = read_entropy_values(malicious_file, bytes_to_read, scan_mode, 1)
+        benign_patterns = read_entropy_values(benign_file, bytes_to_read, scan_mode, 0)
         combined_patterns = malicious_patterns + benign_patterns
 
         files_scanned, files_processed, matches = compare_entropy(directory, combined_patterns, bytes_to_read)

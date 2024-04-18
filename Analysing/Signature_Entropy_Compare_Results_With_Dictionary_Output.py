@@ -10,10 +10,10 @@ def read_csv(filename):
         return list(reader)
 
 # ALWAYS check MODE, PREFIX and Directories!
-mode = 'footer'   # Can be 'header', 'footer', or 'both'
-prefix = 'SF' # Can be 'SH', 'SF', 'SC', 'EH', 'EF', 'EC'
-malicious_csv = read_csv('../DataExchange/datafile_signature_malicious_both_1-600.csv')
-benign_csv = read_csv('../DataExchange/datafile_signature_benign_both_1-600.csv')
+mode = 'both'   # Can be 'header', 'footer', or 'both'
+prefix = 'EC' # Can be 'SH', 'SF', 'SC', 'EH', 'EF', 'EC'
+malicious_csv = read_csv('../DataExchange/datafile_entropy_ds3_malicious_both_1-600.csv')
+benign_csv = read_csv('../DataExchange/datafile_entropy_ds3_benign_both_1-600.csv')
 
 
 # Calculate total rows excluding header (-1 for the header is not needed since DictReader does not count the header as a row)
